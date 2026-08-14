@@ -8,7 +8,7 @@ import {
 import theme from '../theme/tokens';
 import Text from './Text';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'outline';
+export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'danger';
 
 export type ButtonProps = {
   variant?: ButtonVariant;
@@ -59,6 +59,7 @@ const spinnerColors: Record<ButtonVariant, string> = {
   primary: theme.colors.background,
   secondary: theme.colors.textPrimary,
   outline: theme.colors.textPrimary,
+  danger: theme.colors.background,
 };
 
 const styles = StyleSheet.create({
@@ -93,6 +94,9 @@ const variantStyles = StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.colors.border,
   },
+  danger: {
+    backgroundColor: theme.colors.destructive,
+  },
 });
 
 const titleStyles = StyleSheet.create({
@@ -107,6 +111,10 @@ const titleStyles = StyleSheet.create({
   outline: {
     fontFamily: theme.fonts.fontSemibold,
     color: theme.colors.textPrimary,
+  },
+  danger: {
+    fontFamily: theme.fonts.fontSemibold,
+    color: theme.colors.background,
   },
 });
 

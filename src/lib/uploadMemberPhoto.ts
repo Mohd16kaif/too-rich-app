@@ -1,6 +1,6 @@
 import { supabase } from '../supabase';
 
-export const MEMBER_PHOTOS_BUCKET = 'member-photos';
+export const MEMBER_PHOTOS_BUCKET = 'member_photos';
 
 export async function uploadMemberPhoto(
   userId: string,

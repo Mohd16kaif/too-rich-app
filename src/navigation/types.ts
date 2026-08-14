@@ -10,4 +10,7 @@ export type RootStackParamList = {
   Me: undefined;
   EditProfile: undefined;
   ShareMembership: undefined;
+  Settings: undefined;
+  Privacy: undefined;
+  About: undefined;
 };

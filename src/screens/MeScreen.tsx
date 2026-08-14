@@ -223,16 +223,16 @@ function MeScreen({ navigation }: Props) {
   }, []);
 
   const handleSettingsPress = useCallback(() => {
-    // TODO: Settings screen does not exist yet — no route registered.
-  }, []);
+    navigation.navigate('Settings');
+  }, [navigation]);
 
   const handlePrivacyPress = useCallback(() => {
-    // TODO: Privacy screen does not exist yet — no route registered.
-  }, []);
+    navigation.navigate('Privacy');
+  }, [navigation]);
 
   const handleAboutPress = useCallback(() => {
-    // TODO: About Too Rich screen does not exist yet — no route registered.
-  }, []);
+    navigation.navigate('About');
+  }, [navigation]);
 
   const handleTabPress = useCallback(
     (tab: TabKey) => {

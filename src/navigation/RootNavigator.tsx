@@ -1,8 +1,11 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import AboutScreen from '../screens/AboutScreen';
 import ClubHomeScreen from '../screens/ClubHomeScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
 import MeScreen from '../screens/MeScreen';
 import MembersScreen from '../screens/MembersScreen';
+import PrivacyScreen from '../screens/PrivacyScreen';
+import SettingsScreen from '../screens/SettingsScreen';
 import ShareMembershipScreen from '../screens/ShareMembershipScreen';
 import SignInScreen from '../screens/SignInScreen';
 import SplashScreen from '../screens/SplashScreen';
@@ -70,6 +73,21 @@ function RootNavigator() {
       <Stack.Screen
         name="ShareMembership"
         component={ShareMembershipScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Privacy"
+        component={PrivacyScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="About"
+        component={AboutScreen}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>

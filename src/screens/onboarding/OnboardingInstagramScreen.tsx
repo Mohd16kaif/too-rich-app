@@ -13,6 +13,22 @@ type Props = NativeStackScreenProps<RootStackParamList, 'OnboardingInstagram'>;
 
 const MAX_HANDLE_LENGTH = 30;
 
+// Matches Instagram's username rules: 1-30 chars, letters/numbers/periods/
+// underscores only, no leading/trailing period, no consecutive periods.
+// The empty string is treated as valid (field is optional / skippable).
+const VALID_HANDLE_REGEX = /^(?!\.)(?!.*\.\.)(?!.*\.$)[A-Za-z0-9._]{1,30}$/;
+
+function normalizeHandle(raw: string): string {
+  return raw.trim().replace(/^@+/, '');
+}
+
+function isValidInstagramHandle(handle: string): boolean {
+  if (!handle) {
+    return true;
+  }
+  return VALID_HANDLE_REGEX.test(handle);
+}
+
 function OnboardingInstagramScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const [instagramHandle, setInstagramHandle] = useState('');
@@ -61,7 +77,14 @@ function OnboardingInstagramScreen({ navigation }: Props) {
     };
   }, []);
 
+  const handleChangeText = useCallback((text: string) => {
+    setInstagramHandle(normalizeHandle(text));
+  }, []);
+
   const handleReveal = useCallback(async () => {
+    if (instagramHandle.length > 0 && !isValidInstagramHandle(instagramHandle)) {
+      return;
+    }
     try {
       await updateMemberProfile({ instagram_handle: instagramHandle });
     } catch (error) {
@@ -129,14 +152,20 @@ function OnboardingInstagramScreen({ navigation }: Props) {
             placeholder="username"
             placeholderTextColor={theme.colors.textSecondary}
             value={instagramHandle}
-            onChangeText={setInstagramHandle}
+            onChangeText={handleChangeText}
           />
         </View>
+        {instagramHandle.length > 0 && !isValidInstagramHandle(instagramHandle) ? (
+          <Text style={styles.usernameError}>
+            That doesn&apos;t look like a valid Instagram username.
+          </Text>
+        ) : null}
       </View>
 
       <View style={styles.footer}>
         <Button
           title="Reveal My Member Number"
+          disabled={instagramHandle.length > 0 && !isValidInstagramHandle(instagramHandle)}
           onPress={handleReveal}
           style={styles.continueButton}
         />
@@ -224,6 +253,13 @@ const styles = StyleSheet.create({
     fontSize: theme.fontSizes.base,
     color: theme.colors.black,
     marginRight: theme.spacing.sm,
+  },
+  usernameError: {
+    marginTop: theme.spacing.sm,
+    alignSelf: 'flex-start',
+    fontFamily: theme.fonts.fontMedium,
+    fontSize: theme.fontSizes.sm,
+    color: theme.colors.textSecondary,
   },
   input: {
     flex: 1,

@@ -6,6 +6,7 @@ const colors = {
   border: '#E5E7EB',
   black: '#0A0A0A',
   white: '#FFFFFF',
+  destructive: '#DC2626',
 } as const;
 
 const fonts = {

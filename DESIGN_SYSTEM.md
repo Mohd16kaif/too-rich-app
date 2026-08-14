@@ -105,6 +105,7 @@ One palette for the entire app. **No accent colors, no gradients, no warmth.** S
 | Border / divider | `#E5E7EB` | `theme.colors.border` |
 | Solid black (CTA, icons, active elements) | `#0A0A0A` | `theme.colors.black` |
 | White (on-black text, fills) | `#FFFFFF` | `theme.colors.white` |
+| Destructive (account deletion / irreversible actions) | `#DC2626` | `theme.colors.destructive` |
 
 Rules:
 - **Screens have a plain white (`background`) surface.** Do not use gradients; the only gradients in the codebase are legacy and unused.
@@ -112,6 +113,7 @@ Rules:
 - Secondary/descriptive text, captions, links: `textSecondary` (`#6B7280`).
 - Active dots, active chips, active tab icons, primary CTAs, stat numbers, icons: `black`.
 - Inactive dots, chip borders, card borders, dividers, input borders: `border` (`#E5E7EB`).
+- **Sole exception:** destructive actions (Delete Account) use `destructive` (`#DC2626`). No other color is permitted anywhere in the app.
 
 ---
 
