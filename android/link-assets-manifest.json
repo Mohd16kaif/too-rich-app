@@ -1,0 +1,37 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "src/assets/fonts/Fraunces-Bold.ttf",
+      "sha1": "a77233dc6f5f8b3281122b701ec4d43980790caa"
+    },
+    {
+      "path": "src/assets/fonts/Fraunces-Medium.ttf",
+      "sha1": "ac4b60f15ec588aa3c86e4191792b73c5f192f57"
+    },
+    {
+      "path": "src/assets/fonts/Fraunces-Regular.ttf",
+      "sha1": "4b93a164c246086498c8a48008c6c2a8be080b7a"
+    },
+    {
+      "path": "src/assets/fonts/Fraunces-SemiBold.ttf",
+      "sha1": "932bf07b06df17a8b5956795c1745130fc8df944"
+    },
+    {
+      "path": "src/assets/fonts/GeneralSans-Bold.ttf",
+      "sha1": "0b7945251ffc0c8deb9d8e26c8f63aad60b4ac9d"
+    },
+    {
+      "path": "src/assets/fonts/GeneralSans-Medium.ttf",
+      "sha1": "4caaf690adc70f79181d2da7b929535c1f3c4058"
+    },
+    {
+      "path": "src/assets/fonts/GeneralSans-Regular.ttf",
+      "sha1": "4590e3dfca9db2139d2f102056c511bb8269a194"
+    },
+    {
+      "path": "src/assets/fonts/GeneralSans-Semibold.ttf",
+      "sha1": "d053a0862f52d6101f4c71cb63bc6fbb529e5a18"
+    }
+  ]
+}
