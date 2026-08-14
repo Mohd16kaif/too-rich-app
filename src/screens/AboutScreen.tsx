@@ -41,6 +41,10 @@ function AboutScreen({ navigation }: Props) {
     navigation.navigate('Privacy');
   }, [navigation]);
 
+  const handleTermsPress = useCallback(() => {
+    navigation.navigate('Terms');
+  }, [navigation]);
+
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + theme.spacing.sm }]}>
@@ -85,6 +89,13 @@ function AboutScreen({ navigation }: Props) {
           onPress={handlePrivacyPress}
           style={({ pressed }) => [styles.privacyRow, pressed && styles.rowPressed]}>
           <Text style={styles.privacyLabel}>Privacy Policy</Text>
+          <ChevronIcon color={theme.colors.textSecondary} />
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          onPress={handleTermsPress}
+          style={({ pressed }) => [styles.privacyRow, pressed && styles.rowPressed]}>
+          <Text style={styles.privacyLabel}>Terms of Service</Text>
           <ChevronIcon color={theme.colors.textSecondary} />
         </Pressable>
       </ScrollView>

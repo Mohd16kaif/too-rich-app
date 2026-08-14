@@ -12,5 +12,6 @@ export type RootStackParamList = {
   ShareMembership: undefined;
   Settings: undefined;
   Privacy: undefined;
+  Terms: undefined;
   About: undefined;
 };

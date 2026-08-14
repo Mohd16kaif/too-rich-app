@@ -35,6 +35,8 @@ type MemberRecord = {
   status_message: string | null;
 };
 
+type FavoriteRow = { member_id: string | number; favorited_member_id: string | number };
+
 const FILTERS: ReadonlyArray<{ key: FilterKey; label: string }> = [
   { key: 'All', label: 'All' },
   { key: 'Newest', label: 'Newest' },
@@ -72,7 +74,9 @@ function MembersScreen({ navigation }: Props) {
   const [activeFilter, setActiveFilter] = useState<FilterKey>('All');
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [favoriteIds, setFavoriteIds] = useState<number[] | null>(null);
+  const [favoriteSet, setFavoriteSet] = useState<Set<number> | null>(null);
+  const [favoriteCounts, setFavoriteCounts] = useState<Record<number, number>>({});
+  const [favoritesReloadToken, setFavoritesReloadToken] = useState(0);
   const [members, setMembers] = useState<MemberRecord[]>([]);
   const [hasMore, setHasMore] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
@@ -127,10 +131,43 @@ function MembersScreen({ navigation }: Props) {
   }, [searchInput]);
 
   useEffect(() => {
-    if (activeFilter !== 'Favorites') {
-      setFavoriteIds(null);
+    if (memberId === null) {
+      return;
     }
-  }, [activeFilter]);
+    let cancelled = false;
+
+    (async () => {
+      const { data, error } = await supabase.from('favorites').select('member_id, favorited_member_id');
+
+      if (cancelled) return;
+
+      if (error) {
+        console.error('Failed to load favorites:', error.message);
+        setFavoriteSet(new Set());
+        setFavoriteCounts({});
+        return;
+      }
+
+      const counts: Record<number, number> = {};
+      const own = new Set<number>();
+      for (const row of (data ?? []) as FavoriteRow[]) {
+        const favoritedId = Number(row.favorited_member_id);
+        counts[favoritedId] = (counts[favoritedId] ?? 0) + 1;
+        if (Number(row.member_id) === memberId) {
+          own.add(favoritedId);
+        }
+      }
+
+      if (!cancelled) {
+        setFavoriteSet(own);
+        setFavoriteCounts(counts);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [memberId, favoritesReloadToken]);
 
   const loadPage = useCallback(
     async (direction: 'reset' | 'append') => {
@@ -144,25 +181,24 @@ function MembersScreen({ navigation }: Props) {
       }
       setErrorMessage(null);
 
+      if (activeFilter === 'Favorites' && favoriteSet === null) {
+        return;
+      }
+
       try {
         let ids: number[] | null = null;
 
         if (activeFilter === 'Favorites') {
-          if (favoriteIds === null) {
-            const { data: favoriteData, error: favoriteError } = await supabase
-              .from('favorites')
-              .select('favorited_member_id')
-              .eq('member_id', memberId);
-
-            if (seqRef.current !== seq) return;
-            if (favoriteError) {
-              throw new Error(`Failed to load favorites: ${favoriteError.message}`);
-            }
-            ids = (favoriteData ?? []).map((row) => Number(row.favorited_member_id));
-            setFavoriteIds(ids);
-          } else {
-            ids = favoriteIds;
+          const favs = favoriteSet;
+          if (favs === null) {
+            return;
           }
+          if (favs.size === 0) {
+            setMembersBoth([]);
+            setHasMore(false);
+            return;
+          }
+          ids = Array.from(favs);
         }
 
         const orderColumn = activeFilter === 'Newest' ? 'joined_at' : 'member_number';
@@ -210,20 +246,26 @@ function MembersScreen({ navigation }: Props) {
         }
       }
     },
-    [activeFilter, searchQuery, favoriteIds, memberId, setMembersBoth]
+    [activeFilter, searchQuery, favoriteSet, setMembersBoth]
   );
 
   useEffect(() => {
     if (memberId === null) {
       return;
     }
-    const key = `${activeFilter}|${searchQuery}`;
+    const favoritesSignature =
+      activeFilter === 'Favorites'
+        ? favoriteSet === null
+          ? 'pending'
+          : String(favoriteSet.size)
+        : '';
+    const key = `${activeFilter}|${searchQuery}|${favoritesSignature}`;
     if (loadedKeyRef.current === key) {
       return;
     }
     loadedKeyRef.current = key;
     loadPage('reset');
-  }, [activeFilter, searchQuery, memberId, loadPage]);
+  }, [activeFilter, searchQuery, memberId, favoriteSet, loadPage]);
 
   const handleLoadMore = useCallback(() => {
     if (isInitialLoading || isLoadingMore || !hasMore) {
@@ -233,6 +275,7 @@ function MembersScreen({ navigation }: Props) {
   }, [isInitialLoading, isLoadingMore, hasMore, loadPage]);
 
   const handleRetry = useCallback(() => {
+    setFavoritesReloadToken((token) => token + 1);
     loadedKeyRef.current = '';
     loadPage('reset');
   }, [loadPage]);
@@ -244,6 +287,54 @@ function MembersScreen({ navigation }: Props) {
   const handleMemberPress = useCallback(() => {
     // TODO: Individual Member Page does not exist yet — no route registered.
   }, []);
+
+  const handleToggleFavorite = useCallback(
+    (favoritedMemberId: number) => {
+      if (memberId === null || favoriteSet === null || favoritedMemberId === memberId) {
+        return;
+      }
+
+      const wasFavorited = favoriteSet.has(favoritedMemberId);
+
+      setFavoriteSet((current) => {
+        if (current === null) return current;
+        const next = new Set(current);
+        if (wasFavorited) next.delete(favoritedMemberId);
+        else next.add(favoritedMemberId);
+        return next;
+      });
+      setFavoriteCounts((prev) => ({
+        ...prev,
+        [favoritedMemberId]: Math.max(0, (prev[favoritedMemberId] ?? 0) + (wasFavorited ? -1 : 1)),
+      }));
+
+      const action = wasFavorited
+        ? supabase
+            .from('favorites')
+            .delete()
+            .eq('member_id', memberId)
+            .eq('favorited_member_id', favoritedMemberId)
+        : supabase
+            .from('favorites')
+            .insert({ member_id: memberId, favorited_member_id: favoritedMemberId });
+
+      action.then(({ error }) => {
+        if (!error) return;
+        setFavoriteSet((current) => {
+          if (current === null) return current;
+          const next = new Set(current);
+          if (wasFavorited) next.add(favoritedMemberId);
+          else next.delete(favoritedMemberId);
+          return next;
+        });
+        setFavoriteCounts((prev) => ({
+          ...prev,
+          [favoritedMemberId]: Math.max(0, (prev[favoritedMemberId] ?? 0) + (wasFavorited ? 1 : -1)),
+        }));
+      });
+    },
+    [memberId, favoriteSet]
+  );
 
   const handleTabPress = useCallback(
     (tab: TabKey) => {
@@ -258,36 +349,56 @@ function MembersScreen({ navigation }: Props) {
   );
 
   const renderItem = useCallback(
-    ({ item }: { item: MemberRecord }) => (
-      <Pressable
-        accessibilityRole="button"
-        onPress={handleMemberPress}
-        style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}>
-        <View style={styles.cardTop}>
-          <View style={styles.photo}>
-            {item.photo_url ? (
-              <Image source={{ uri: item.photo_url }} style={styles.photoImage} />
-            ) : (
-              <PhotoPlaceholder />
+    ({ item }: { item: MemberRecord }) => {
+      const isOwnCard = memberId !== null && item.id === memberId;
+      const isFavorited = favoriteSet !== null && favoriteSet.has(item.id);
+      const favoriteCount = favoriteCounts[item.id] ?? 0;
+
+      return (
+        <Pressable
+          accessibilityRole="button"
+          onPress={handleMemberPress}
+          style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}>
+          <View style={styles.cardTop}>
+            <View style={styles.photo}>
+              {item.photo_url ? (
+                <Image source={{ uri: item.photo_url }} style={styles.photoImage} />
+              ) : (
+                <PhotoPlaceholder />
+              )}
+            </View>
+            {isOwnCard ? null : (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`${isFavorited ? 'Unfavorite' : 'Favorite'} ${item.full_name ?? 'member'}`}
+                accessibilityState={{ selected: isFavorited }}
+                onPress={() => handleToggleFavorite(item.id)}
+                hitSlop={8}
+                style={styles.favoriteChip}>
+                <Text style={[styles.favoriteStar, isFavorited && styles.favoriteStarActive]}>
+                  {isFavorited ? '\u2605' : '\u2606'}
+                </Text>
+                <Text style={styles.favoriteCount}>{favoriteCount}</Text>
+              </Pressable>
             )}
+            <View style={styles.badge}>
+              <Text style={styles.badgeGlyph}>✓</Text>
+            </View>
           </View>
-          <View style={styles.badge}>
-            <Text style={styles.badgeGlyph}>✓</Text>
-          </View>
-        </View>
-        <Text style={styles.eyebrow}>MEMBER</Text>
-        <Text style={styles.cardNumber}>#{item.member_number}</Text>
-        <Text style={styles.cardName} numberOfLines={1}>
-          {item.full_name ?? 'Member'}
-        </Text>
-        {item.status_message ? (
-          <Text style={styles.cardStatus} numberOfLines={1}>
-            {'\u00B7'} {item.status_message}
+          <Text style={styles.eyebrow}>MEMBER</Text>
+          <Text style={styles.cardNumber}>#{item.member_number}</Text>
+          <Text style={styles.cardName} numberOfLines={1}>
+            {item.full_name ?? 'Member'}
           </Text>
-        ) : null}
-      </Pressable>
-    ),
-    [handleMemberPress]
+          {item.status_message ? (
+            <Text style={styles.cardStatus} numberOfLines={1}>
+              {'\u00B7'} {item.status_message}
+            </Text>
+          ) : null}
+        </Pressable>
+      );
+    },
+    [handleMemberPress, handleToggleFavorite, memberId, favoriteSet, favoriteCounts]
   );
 
   if (errorMessage && members.length === 0) {
@@ -575,6 +686,34 @@ const styles = StyleSheet.create({
     fontFamily: theme.fonts.fontBold,
     fontSize: 13,
     color: theme.colors.black,
+  },
+  favoriteChip: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.background,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderRadius: theme.radius.full,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: 3,
+    gap: 3,
+  },
+  favoriteStar: {
+    fontFamily: theme.fonts.fontMedium,
+    fontSize: 13,
+    lineHeight: 15,
+    color: theme.colors.textSecondary,
+  },
+  favoriteStarActive: {
+    color: theme.colors.black,
+  },
+  favoriteCount: {
+    fontFamily: theme.fonts.fontMedium,
+    fontSize: theme.fontSizes.xs,
+    color: theme.colors.textSecondary,
   },
   eyebrow: {
     marginTop: theme.spacing.md,

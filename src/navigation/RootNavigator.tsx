@@ -8,6 +8,7 @@ import PrivacyScreen from '../screens/PrivacyScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import ShareMembershipScreen from '../screens/ShareMembershipScreen';
 import SignInScreen from '../screens/SignInScreen';
+import TermsScreen from '../screens/TermsScreen';
 import SplashScreen from '../screens/SplashScreen';
 import OnboardingConfirmationScreen from '../screens/onboarding/OnboardingConfirmationScreen';
 import OnboardingInstagramScreen from '../screens/onboarding/OnboardingInstagramScreen';
@@ -83,6 +84,11 @@ function RootNavigator() {
       <Stack.Screen
         name="Privacy"
         component={PrivacyScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Terms"
+        component={TermsScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen

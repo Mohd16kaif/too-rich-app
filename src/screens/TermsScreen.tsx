@@ -6,7 +6,7 @@ import Text from '../components/Text';
 import type { RootStackParamList } from '../navigation/types';
 import theme from '../theme/tokens';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Privacy'>;
+type Props = NativeStackScreenProps<RootStackParamList, 'Terms'>;
 
 type LegalBlock =
   | { type: 'paragraph'; text: string }
@@ -27,111 +27,130 @@ type LegalContent = {
 const CONTENT: LegalContent = {
   preamble: [
     'Last updated: August 14, 2026',
-    'This Privacy Policy explains what information Too Rich ("the App," "we," "us") collects when you use it, how it\'s used, and the choices you have.',
+    'By downloading and using Too Rich ("the App"), you agree to these Terms of Service. If you do not agree, do not use the App.',
   ],
   sections: [
     {
-      heading: 'Information We Collect',
+      heading: '1. Eligibility',
       blocks: [
         {
-          type: 'labeled',
-          label: 'Account Information',
-          text: 'When you sign in using Sign in with Apple, we receive your name and an email address (or Apple\'s private relay email, depending on your choice at sign-in).',
-        },
-        {
-          type: 'labeled',
-          label: 'Profile Information',
-          text: 'When you join, we collect a photo you provide, an optional status message, and an optional Instagram handle. This information is displayed to other members on the Member Wall and your individual profile.',
-        },
-        {
-          type: 'labeled',
-          label: 'Purchase Information',
-          text: 'Membership is a one-time paid purchase processed through Apple\'s payment system. We do not receive or store your payment card details — those are handled entirely by Apple. We do retain a record that a purchase was completed, associated with your membership number.',
-        },
-        {
-          type: 'labeled',
-          label: 'Membership Number',
-          text: 'Each member receives a unique, permanent membership number, which is stored and displayed alongside your profile.',
+          type: 'paragraph',
+          text: 'You must be at least 13 years old to use Too Rich. By using the App, you represent that you meet this requirement.',
         },
       ],
     },
     {
-      heading: 'How We Use Your Information',
-      blocks: [
-        {
-          type: 'paragraph',
-          text: 'We use the information above solely to operate the App:',
-        },
-        {
-          type: 'bullets',
-          items: [
-            'To create and display your member profile and membership card',
-            'To display members to one another on the Member Wall',
-            'To verify your membership status',
-            'To respond if you contact support',
-          ],
-        },
-        {
-          type: 'paragraph',
-          text: 'We do not use your information for advertising, and we do not sell or share it with third parties for marketing or advertising purposes.',
-        },
-      ],
-    },
-    {
-      heading: 'Tracking and Third Parties',
-      blocks: [
-        {
-          type: 'paragraph',
-          text: 'Too Rich does not use your data to track you across other companies\' apps or websites, and we do not share your data with advertising networks. We use Supabase as our backend infrastructure provider to store app data securely — they act as a service provider on our behalf and do not use your data for their own purposes.',
-        },
-      ],
-    },
-    {
-      heading: 'Data Retention and Deletion',
-      blocks: [
-        {
-          type: 'paragraph',
-          text: 'Your information is retained for as long as your account exists. You can request deletion of your account and associated data at any time through the App\'s settings or by contacting us at ark07q@gmail.com. Note that your membership number, once retired, is not reissued to another user, consistent with the permanent nature of Too Rich membership — however, your personal profile data (photo, status, Instagram handle) will be removed upon deletion.',
-        },
-      ],
-    },
-    {
-      heading: 'Children\'s Privacy',
-      blocks: [
-        {
-          type: 'paragraph',
-          text: 'Too Rich is not intended for users under the age of 13, and we do not knowingly collect information from children under 13.',
-        },
-      ],
-    },
-    {
-      heading: 'Your Choices',
+      heading: '2. Membership',
       blocks: [
         {
           type: 'bullets',
           items: [
-            'The status message and Instagram handle are optional and can be left blank.',
-            'You can edit your profile information at any time from within the App.',
-            'You can request account deletion at any time.',
+            'Too Rich offers a fixed, limited membership of 1,000 seats total.',
+            'Membership is granted via a one-time payment of $399 USD (or the local equivalent shown at purchase).',
+            'Once purchased, membership is permanent for the lifetime of the App and does not expire, renew, or require any subscription.',
+            'Each member receives a unique, permanently assigned membership number that is not reused or reassigned.',
+            'All 1,000 memberships are final once claimed; there is no waiting list and no guarantee of future availability once the cap is reached.',
           ],
         },
       ],
     },
     {
-      heading: 'Changes to This Policy',
+      heading: '3. Payments and Refunds',
       blocks: [
         {
-          type: 'paragraph',
-          text: 'We may update this Privacy Policy from time to time. Material changes will be reflected with an updated "Last updated" date above.',
+          type: 'bullets',
+          items: [
+            'All payments are processed through Apple\'s App Store payment system, subject to Apple\'s own terms and refund policies.',
+            'Membership fees are generally non-refundable except where required by law or Apple\'s own refund policy.',
+          ],
         },
       ],
     },
     {
-      heading: 'Contact Us',
+      heading: '4. Your Content',
+      blocks: [
+        {
+          type: 'bullets',
+          items: [
+            'You are responsible for the photo, status message, and any other information you choose to add to your profile.',
+            'You agree not to upload content that is illegal, infringing, harassing, or that impersonates another person.',
+            'You retain ownership of the content you upload, but grant us a license to display it within the App as part of your membership profile and the Member Wall.',
+          ],
+        },
+      ],
+    },
+    {
+      heading: '5. Member Conduct',
+      blocks: [
+        {
+          type: 'bullets',
+          items: [
+            'You agree to use the App respectfully and not to use it to harass, defame, or harm other members.',
+            'We reserve the right to remove content or suspend/terminate a membership that violates these Terms, at our discretion.',
+          ],
+        },
+      ],
+    },
+    {
+      heading: '6. No Guarantee of Features',
       blocks: [
         {
           type: 'paragraph',
-          text: 'If you have questions about this Privacy Policy or your data, contact us at:',
+          text: 'Too Rich provides a membership profile, a permanent membership number, and a Member Wall where members can view one another. We do not currently offer in-app messaging between members; any connection with other members beyond what the App displays (e.g. via a shared Instagram handle) is between users directly and outside our control.',
+        },
+      ],
+    },
+    {
+      heading: '7. Termination',
+      blocks: [
+        {
+          type: 'paragraph',
+          text: 'We reserve the right to suspend or terminate your membership if you violate these Terms. Since membership is a one-time purchase, termination for cause does not entitle you to a refund except where required by law.',
+        },
+      ],
+    },
+    {
+      heading: '8. Disclaimer of Warranties',
+      blocks: [
+        {
+          type: 'paragraph',
+          text: 'The App is provided "as is" without warranties of any kind, express or implied. We do not guarantee the App will be uninterrupted, error-free, or meet your expectations.',
+        },
+      ],
+    },
+    {
+      heading: '9. Limitation of Liability',
+      blocks: [
+        {
+          type: 'paragraph',
+          text: 'To the maximum extent permitted by law, Too Rich and its developer shall not be liable for any indirect, incidental, or consequential damages arising from your use of the App.',
+        },
+      ],
+    },
+    {
+      heading: '10. Changes to These Terms',
+      blocks: [
+        {
+          type: 'paragraph',
+          text: 'We may update these Terms from time to time. Continued use of the App after changes constitutes acceptance of the updated Terms.',
+        },
+      ],
+    },
+    {
+      heading: '11. Governing Law',
+      blocks: [
+        {
+          type: 'paragraph',
+          text: 'These Terms are governed by the laws of India, without regard to conflict of law principles, unless otherwise required by the laws of your country of residence.',
+        },
+      ],
+    },
+    {
+      heading: '12. Contact',
+      blocks: [
+        {
+          type: 'paragraph',
+          text: 'Questions about these Terms can be sent to:',
         },
         {
           type: 'paragraph',
@@ -141,7 +160,7 @@ const CONTENT: LegalContent = {
     },
   ],
   footer:
-    'This document is a starting draft based on the App\'s actual functionality. Given that Too Rich processes payments and operates across multiple countries, we recommend having this reviewed by a legal professional before publishing, particularly for compliance with regional laws (e.g. GDPR in the EU, CCPA in California) beyond what\'s covered here.',
+    'This document is a starting draft based on the App\'s actual functionality. Given that Too Rich processes real payments internationally and includes user-generated content, we recommend having this reviewed by a legal professional before publishing — particularly the refund, liability, and governing law sections, which can carry real consequences if misdrafted.',
 };
 
 function BackChevronIcon({ color }: { color: string }) {
@@ -155,7 +174,7 @@ function BackChevronIcon({ color }: { color: string }) {
   );
 }
 
-function PrivacyScreen({ navigation }: Props) {
+function TermsScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
 
   const handleBack = useCallback(() => {
@@ -173,7 +192,7 @@ function PrivacyScreen({ navigation }: Props) {
           style={styles.backButton}>
           <BackChevronIcon color={theme.colors.black} />
         </Pressable>
-        <Text style={styles.headerTitle}>Privacy Policy</Text>
+        <Text style={styles.headerTitle}>Terms of Service</Text>
         <View style={styles.headerSpacer} />
       </View>
 
@@ -324,4 +343,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PrivacyScreen;
+export default TermsScreen;

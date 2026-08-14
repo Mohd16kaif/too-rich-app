@@ -134,6 +134,10 @@ function SettingsScreen({ navigation }: Props) {
     navigation.navigate('Privacy');
   }, [navigation]);
 
+  const handleTermsPress = useCallback(() => {
+    navigation.navigate('Terms');
+  }, [navigation]);
+
   const handleAboutPress = useCallback(() => {
     navigation.navigate('About');
   }, [navigation]);
@@ -269,6 +273,15 @@ function SettingsScreen({ navigation }: Props) {
             style={({ pressed }) => [styles.listRow, pressed && styles.rowPressed]}>
             <LockIcon color={theme.colors.black} />
             <Text style={styles.listRowLabel}>Privacy Policy</Text>
+            <ChevronIcon color={theme.colors.textSecondary} />
+          </Pressable>
+          <View style={styles.listDivider} />
+          <Pressable
+            accessibilityRole="button"
+            onPress={handleTermsPress}
+            style={({ pressed }) => [styles.listRow, pressed && styles.rowPressed]}>
+            <LockIcon color={theme.colors.black} />
+            <Text style={styles.listRowLabel}>Terms of Service</Text>
             <ChevronIcon color={theme.colors.textSecondary} />
           </Pressable>
           <View style={styles.listDivider} />
