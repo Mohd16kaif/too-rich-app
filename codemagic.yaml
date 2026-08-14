@@ -34,9 +34,9 @@ workflows:
           keychain initialize
           keychain add-certificates
           xcode-project use-profiles
-      - name: Increment build number
+      - name: Set build number
         script: |
-          cd ios && agvtool new-version -all $(app-store-connect get-latest-app-store-build-number "$BUNDLE_ID" | awk '{print $1+1}')
+          cd ios && agvtool new-version -all 1
       - name: Build ipa for App Store distribution
         script: |
           xcode-project build-ipa \
