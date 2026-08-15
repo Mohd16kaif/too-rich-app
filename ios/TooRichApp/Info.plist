@@ -34,7 +34,9 @@
 		<true/>
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string/>
+	<string>Too Rich uses your location to enhance your membership experience.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Too Rich needs access to your photo library so you can upload a profile photo.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIRequiredDeviceCapabilities</key>
