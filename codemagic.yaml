@@ -28,9 +28,6 @@ workflows:
           cd ios && pod install
       - name: Set up code signing
         script: |
-          app-store-connect fetch-signing-files "$BUNDLE_ID" \
-            --type IOS_APP_STORE \
-            --create
           keychain initialize
           keychain add-certificates
           xcode-project use-profiles
@@ -42,7 +39,7 @@ workflows:
           xcode-project build-ipa \
             --workspace "$XCODE_WORKSPACE" \
             --scheme "$XCODE_SCHEME" \
-            --archive-flags="CODE_SIGN_STYLE=Automatic -allowProvisioningUpdates"
+            --archive-flags="CODE_SIGN_STYLE=Manual PROVISIONING_PROFILE_SPECIFIER=too_rich_app_store"
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
