@@ -32,6 +32,9 @@ workflows:
       - name: Set build number
         script: |
           cd ios && agvtool new-version -all 1
+      - name: Set up export options
+        script: |
+          xcode-project use-profiles
       - name: Build ipa for App Store distribution
         script: |
           xcode-project build-ipa \
