@@ -29,6 +29,9 @@ workflows:
       - name: Install CocoaPods dependencies
         script: |
           cd ios && pod install
+      - name: Debug bundle id
+        script: |
+          xcodebuild -workspace "$XCODE_WORKSPACE" -scheme "$XCODE_SCHEME" -showBuildSettings -configuration Release | grep -i "PRODUCT_BUNDLE_IDENTIFIER\|PRODUCT_NAME"
       - name: Set build number
         script: |
           cd ios && agvtool new-version -all 1
