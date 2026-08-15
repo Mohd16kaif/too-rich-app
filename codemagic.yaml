@@ -40,7 +40,9 @@ workflows:
           xcodebuild -workspace "$XCODE_WORKSPACE" -scheme "$XCODE_SCHEME" -showBuildSettings -configuration Release | grep -i "PRODUCT_BUNDLE_IDENTIFIER\|PRODUCT_NAME"
       - name: Set build number
         script: |
-          cd ios && agvtool new-version -all $CM_BUILD_NUMBER
+          cd ios
+          LATEST_BUILD_NUMBER=$(app-store-connect get-latest-testflight-build-number "6799600825")
+          agvtool new-version -all $(($LATEST_BUILD_NUMBER + 1))
       - name: Set up export options
         script: |
           xcode-project use-profiles --project "ios/TooRichApp.xcodeproj" -v
