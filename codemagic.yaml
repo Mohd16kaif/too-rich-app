@@ -34,9 +34,7 @@ workflows:
           cd ios && agvtool new-version -all 1
       - name: Set up export options
         script: |
-          xcode-project use-profiles \
-          --project "ios/TooRichApp.xcodeproj" \
-          --archive-flags="CODE_SIGN_STYLE=Manual"
+          xcode-project use-profiles --project "ios/TooRichApp.xcodeproj" -v
       - name: Build ipa for App Store distribution
         script: |
           xcode-project build-ipa \
