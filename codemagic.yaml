@@ -23,6 +23,12 @@ workflows:
         script: |
           echo "SUPABASE_URL=$SUPABASE_URL" >> .env
           echo "SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY" >> .env
+          cat > src/generatedConfig.ts << 'EOF'
+          export const SUPABASE_URL = "PLACEHOLDER_URL";
+          export const SUPABASE_ANON_KEY = "PLACEHOLDER_KEY";
+          EOF
+          sed -i '' "s|PLACEHOLDER_URL|$SUPABASE_URL|" src/generatedConfig.ts
+          sed -i '' "s|PLACEHOLDER_KEY|$SUPABASE_ANON_KEY|" src/generatedConfig.ts
       - name: Install npm dependencies
         script: |
           npm install
