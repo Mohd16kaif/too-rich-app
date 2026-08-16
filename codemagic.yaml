@@ -21,6 +21,8 @@ workflows:
     scripts:
       - name: Generate .env from secrets
         script: |
+          echo "SUPABASE_URL length: ${#SUPABASE_URL}"
+          echo "SUPABASE_ANON_KEY length: ${#SUPABASE_ANON_KEY}"
           echo "SUPABASE_URL=$SUPABASE_URL" >> .env
           echo "SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY" >> .env
           cat > src/generatedConfig.ts << 'EOF'
