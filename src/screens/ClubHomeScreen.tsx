@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import BottomTabBar, { type TabKey } from '../components/BottomTabBar';
 import Card from '../components/Card';
-import { ensureMemberSession, isMemberCapError } from '../lib/ensureMemberSession';
+import { getCurrentMember } from '../lib/getCurrentMember';
 import { MEMBER_CAP, fetchClaimedMemberCount } from '../lib/memberCount';
 import type { RootStackParamList } from '../navigation/types';
 import { supabase } from '../supabase';
@@ -96,7 +96,10 @@ function ClubHomeScreen({ navigation }: Props) {
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      const { member } = await ensureMemberSession();
+      const member = await getCurrentMember();
+      if (!member) {
+        throw new Error('Expected an active member session, but none was found.');
+      }
 
       const [claimed, newestResult] = await Promise.all([
         fetchClaimedMemberCount(),
@@ -121,12 +124,8 @@ function ClubHomeScreen({ navigation }: Props) {
       setJoinedMonth(formatJoinedMonth(member.joined_at));
       setClaimedCount(claimed);
       setNewestMembers((newestResult.data ?? []) as NewestMember[]);
-    } catch (error) {
-      setErrorMessage(
-        isMemberCapError(error)
-          ? error.message
-          : 'Something went wrong loading the club. Please try again.'
-      );
+    } catch {
+      setErrorMessage('Something went wrong loading the club. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -137,7 +136,10 @@ function ClubHomeScreen({ navigation }: Props) {
 
     (async () => {
       try {
-        const { member } = await ensureMemberSession();
+        const member = await getCurrentMember();
+        if (!member) {
+          throw new Error('Expected an active member session, but none was found.');
+        }
 
         const [claimed, newestResult] = await Promise.all([
           fetchClaimedMemberCount(),
@@ -164,13 +166,9 @@ function ClubHomeScreen({ navigation }: Props) {
           setClaimedCount(claimed);
           setNewestMembers((newestResult.data ?? []) as NewestMember[]);
         }
-      } catch (error) {
+      } catch {
         if (!cancelled) {
-          setErrorMessage(
-            isMemberCapError(error)
-              ? error.message
-              : 'Something went wrong loading the club. Please try again.'
-          );
+          setErrorMessage('Something went wrong loading the club. Please try again.');
         }
       } finally {
         if (!cancelled) {

@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Button from '../../components/Button';
 import Text from '../../components/Text';
-import { ensureMemberSession, isMemberCapError } from '../../lib/ensureMemberSession';
+import { getCurrentMember } from '../../lib/getCurrentMember';
 import { updateMemberProfile } from '../../lib/updateMemberProfile';
 import type { RootStackParamList } from '../../navigation/types';
 import theme from '../../theme/tokens';
@@ -39,13 +39,12 @@ function OnboardingInstagramScreen({ navigation }: Props) {
     setIsLoadingSession(true);
     setSessionError(null);
     try {
-      await ensureMemberSession();
-    } catch (error) {
-      setSessionError(
-        isMemberCapError(error)
-          ? error.message
-          : 'Something went wrong setting up your session. Please try again.'
-      );
+      const member = await getCurrentMember();
+      if (!member) {
+        throw new Error('Expected an active member session, but none was found.');
+      }
+    } catch {
+      setSessionError('Something went wrong setting up your session. Please try again.');
     } finally {
       setIsLoadingSession(false);
     }
@@ -56,14 +55,13 @@ function OnboardingInstagramScreen({ navigation }: Props) {
 
     (async () => {
       try {
-        await ensureMemberSession();
-      } catch (error) {
+        const member = await getCurrentMember();
+        if (!member) {
+          throw new Error('Expected an active member session, but none was found.');
+        }
+      } catch {
         if (!cancelled) {
-          setSessionError(
-            isMemberCapError(error)
-              ? error.message
-              : 'Something went wrong setting up your session. Please try again.'
-          );
+          setSessionError('Something went wrong setting up your session. Please try again.');
         }
       } finally {
         if (!cancelled) {

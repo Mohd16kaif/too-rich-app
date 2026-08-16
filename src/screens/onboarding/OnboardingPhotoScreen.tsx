@@ -5,7 +5,7 @@ import { launchImageLibrary } from 'react-native-image-picker';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Button from '../../components/Button';
 import Text from '../../components/Text';
-import { ensureMemberSession, isMemberCapError } from '../../lib/ensureMemberSession';
+import { getCurrentMember } from '../../lib/getCurrentMember';
 import { updateMemberProfile } from '../../lib/updateMemberProfile';
 import { uploadMemberPhoto } from '../../lib/uploadMemberPhoto';
 import type { RootStackParamList } from '../../navigation/types';
@@ -27,13 +27,12 @@ function OnboardingPhotoScreen({ navigation }: Props) {
     setIsLoadingSession(true);
     setSessionError(null);
     try {
-      await ensureMemberSession();
-    } catch (error) {
-      setSessionError(
-        isMemberCapError(error)
-          ? error.message
-          : 'Something went wrong setting up your session. Please try again.'
-      );
+      const member = await getCurrentMember();
+      if (!member) {
+        throw new Error('Expected an active member session, but none was found.');
+      }
+    } catch {
+      setSessionError('Something went wrong setting up your session. Please try again.');
     } finally {
       setIsLoadingSession(false);
     }
@@ -44,14 +43,13 @@ function OnboardingPhotoScreen({ navigation }: Props) {
 
     (async () => {
       try {
-        await ensureMemberSession();
-      } catch (error) {
+        const member = await getCurrentMember();
+        if (!member) {
+          throw new Error('Expected an active member session, but none was found.');
+        }
+      } catch {
         if (!cancelled) {
-          setSessionError(
-            isMemberCapError(error)
-              ? error.message
-              : 'Something went wrong setting up your session. Please try again.'
-          );
+          setSessionError('Something went wrong setting up your session. Please try again.');
         }
       } finally {
         if (!cancelled) {
@@ -111,7 +109,10 @@ function OnboardingPhotoScreen({ navigation }: Props) {
     setIsUploadingPhoto(true);
     setUploadError(null);
     try {
-      const { member } = await ensureMemberSession();
+      const member = await getCurrentMember();
+      if (!member) {
+        throw new Error('Expected an active member session, but none was found.');
+      }
       const publicUrl = await uploadMemberPhoto(
         member.apple_user_id,
         photoBase64,

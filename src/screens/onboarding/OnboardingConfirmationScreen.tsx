@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Button from '../../components/Button';
 import Card from '../../components/Card';
-import { ensureMemberSession, isMemberCapError } from '../../lib/ensureMemberSession';
+import { getCurrentMember } from '../../lib/getCurrentMember';
 import { MEMBER_CAP, fetchClaimedMemberCount } from '../../lib/memberCount';
 import type { RootStackParamList } from '../../navigation/types';
 import theme from '../../theme/tokens';
@@ -22,23 +22,23 @@ function OnboardingConfirmationScreen({ navigation }: Props) {
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      const [{ member }, claimedCount] = await Promise.all([
-        ensureMemberSession(),
+      const [loadedMember, claimedCount] = await Promise.all([
+        getCurrentMember(),
         fetchClaimedMemberCount(),
       ]);
+
+      if (!loadedMember) {
+        throw new Error('Expected an active member session, but none was found.');
+      }
 
       if (claimedCount === null) {
         throw new Error('Could not load the current membership count.');
       }
 
-      setMemberNumber(member.member_number);
+      setMemberNumber(loadedMember.member_number);
       setRemainingCount(Math.max(0, MEMBER_CAP - claimedCount));
-    } catch (error) {
-      setErrorMessage(
-        isMemberCapError(error)
-          ? error.message
-          : 'Something went wrong loading your membership. Please try again.'
-      );
+    } catch {
+      setErrorMessage('Something went wrong loading your membership. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -49,26 +49,26 @@ function OnboardingConfirmationScreen({ navigation }: Props) {
 
     (async () => {
       try {
-        const [{ member }, claimedCount] = await Promise.all([
-          ensureMemberSession(),
+        const [loadedMember, claimedCount] = await Promise.all([
+          getCurrentMember(),
           fetchClaimedMemberCount(),
         ]);
+
+        if (!loadedMember) {
+          throw new Error('Expected an active member session, but none was found.');
+        }
 
         if (claimedCount === null) {
           throw new Error('Could not load the current membership count.');
         }
 
         if (!cancelled) {
-          setMemberNumber(member.member_number);
+          setMemberNumber(loadedMember.member_number);
           setRemainingCount(Math.max(0, MEMBER_CAP - claimedCount));
         }
-      } catch (error) {
+      } catch {
         if (!cancelled) {
-          setErrorMessage(
-            isMemberCapError(error)
-              ? error.message
-              : 'Something went wrong loading your membership. Please try again.'
-          );
+          setErrorMessage('Something went wrong loading your membership. Please try again.');
         }
       } finally {
         if (!cancelled) {

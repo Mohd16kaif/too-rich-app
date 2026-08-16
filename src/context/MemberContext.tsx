@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import { ensureMemberSession, isMemberCapError, type Member } from '../lib/ensureMemberSession';
+import { getCurrentMember } from '../lib/getCurrentMember';
+import type { Member } from '../lib/ensureMemberSession';
 
 type MemberContextValue = {
   member: Member | null;
@@ -24,15 +25,11 @@ export function MemberProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      const { member: loaded } = await ensureMemberSession();
+      const loaded = await getCurrentMember();
       setMember(loaded);
       hasLoadedOnce.current = true;
-    } catch (error) {
-      setErrorMessage(
-        isMemberCapError(error)
-          ? error.message
-          : 'Something went wrong loading your profile. Please try again.'
-      );
+    } catch {
+      setErrorMessage('Something went wrong loading your profile. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -40,7 +37,7 @@ export function MemberProvider({ children }: { children: ReactNode }) {
 
   const refreshSilently = useCallback(async () => {
     try {
-      const { member: loaded } = await ensureMemberSession();
+      const loaded = await getCurrentMember();
       setMember(loaded);
       setErrorMessage(null);
       hasLoadedOnce.current = true;
@@ -54,18 +51,14 @@ export function MemberProvider({ children }: { children: ReactNode }) {
 
     (async () => {
       try {
-        const { member: loaded } = await ensureMemberSession();
+        const loaded = await getCurrentMember();
         if (!cancelled) {
           setMember(loaded);
           hasLoadedOnce.current = true;
         }
-      } catch (error) {
+      } catch {
         if (!cancelled) {
-          setErrorMessage(
-            isMemberCapError(error)
-              ? error.message
-              : 'Something went wrong loading your profile. Please try again.'
-          );
+          setErrorMessage('Something went wrong loading your profile. Please try again.');
         }
       } finally {
         if (!cancelled) {

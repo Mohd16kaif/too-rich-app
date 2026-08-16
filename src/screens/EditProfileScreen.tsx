@@ -15,7 +15,8 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Button from '../components/Button';
 import Card from '../components/Card';
 import Text from '../components/Text';
-import { ensureMemberSession, isMemberCapError, type Member } from '../lib/ensureMemberSession';
+import { getCurrentMember } from '../lib/getCurrentMember';
+import type { Member } from '../lib/ensureMemberSession';
 import { updateMemberProfile } from '../lib/updateMemberProfile';
 import { uploadMemberPhoto } from '../lib/uploadMemberPhoto';
 import type { RootStackParamList } from '../navigation/types';
@@ -115,19 +116,18 @@ function EditProfileScreen({ navigation }: Props) {
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      const { member: loaded } = await ensureMemberSession();
+      const loaded = await getCurrentMember();
+      if (!loaded) {
+        throw new Error('Expected an active member session, but none was found.');
+      }
       setMember(loaded);
       setFullName(loaded.full_name ?? '');
       setStatusMessage(loaded.status_message ?? '');
       setInstagramHandle(loaded.instagram_handle ?? '');
       setSavedPhotoUrl(loaded.photo_url);
       setPhotoSrc(loaded.photo_url);
-    } catch (error) {
-      setErrorMessage(
-        isMemberCapError(error)
-          ? error.message
-          : 'Something went wrong loading your profile. Please try again.'
-      );
+    } catch {
+      setErrorMessage('Something went wrong loading your profile. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -138,7 +138,10 @@ function EditProfileScreen({ navigation }: Props) {
 
     (async () => {
       try {
-        const { member: loaded } = await ensureMemberSession();
+        const loaded = await getCurrentMember();
+        if (!loaded) {
+          throw new Error('Expected an active member session, but none was found.');
+        }
         if (!cancelled) {
           setMember(loaded);
           setFullName(loaded.full_name ?? '');
@@ -147,13 +150,9 @@ function EditProfileScreen({ navigation }: Props) {
           setSavedPhotoUrl(loaded.photo_url);
           setPhotoSrc(loaded.photo_url);
         }
-      } catch (error) {
+      } catch {
         if (!cancelled) {
-          setErrorMessage(
-            isMemberCapError(error)
-              ? error.message
-              : 'Something went wrong loading your profile. Please try again.'
-          );
+          setErrorMessage('Something went wrong loading your profile. Please try again.');
         }
       } finally {
         if (!cancelled) {

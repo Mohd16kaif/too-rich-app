@@ -1,5 +1,5 @@
 import { supabase } from '../supabase';
-import { ensureMemberSession } from './ensureMemberSession';
+import { getCurrentMember } from './getCurrentMember';
 
 export type MemberProfileUpdates = {
   full_name?: string;
@@ -10,7 +10,7 @@ export type MemberProfileUpdates = {
 
 /**
  * Persists profile fields to the current user's `members` row.
- * Resolves the current auth uid (creating the session + row on first use),
+ * Resolves the current auth uid from the existing session (never creates one),
  * then UPDATEs only the passed fields. Non-critical: callers should not
  * block navigation on failure.
  */
@@ -31,7 +31,10 @@ export async function updateMemberProfile(
   if (sessionUserId) {
     userId = sessionUserId;
   } else {
-    const { member } = await ensureMemberSession();
+    const member = await getCurrentMember();
+    if (!member) {
+      throw new Error('Expected an active member session, but none was found.');
+    }
     userId = member.apple_user_id;
   }
 

@@ -14,7 +14,6 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import BottomTabBar, { type TabKey } from '../components/BottomTabBar';
 import Text from '../components/Text';
 import { useMember } from '../context/MemberContext';
-import { isMemberCapError } from '../lib/ensureMemberSession';
 import { MEMBER_CAP, fetchClaimedMemberCount, formatCount } from '../lib/memberCount';
 import type { RootStackParamList } from '../navigation/types';
 import { supabase } from '../supabase';
@@ -104,13 +103,9 @@ function MembersScreen({ navigation }: Props) {
         if (!cancelled) {
           setClaimedCount(claimed);
         }
-      } catch (error) {
+      } catch {
         if (!cancelled) {
-          setErrorMessage(
-            isMemberCapError(error)
-              ? error.message
-              : 'Something went wrong loading members. Please try again.'
-          );
+          setErrorMessage('Something went wrong loading members. Please try again.');
           setIsInitialLoading(false);
         }
       }
@@ -230,13 +225,9 @@ function MembersScreen({ navigation }: Props) {
 
         setMembersBoth(direction === 'reset' ? pageRows : [...membersRef.current, ...pageRows]);
         setHasMore(hasMoreRows);
-      } catch (error) {
+      } catch {
         if (seqRef.current !== seq) return;
-        setErrorMessage(
-          isMemberCapError(error)
-            ? error.message
-            : 'Something went wrong loading members. Please try again.'
-        );
+        setErrorMessage('Something went wrong loading members. Please try again.');
       } finally {
         if (seqRef.current === seq) {
           setIsInitialLoading(false);

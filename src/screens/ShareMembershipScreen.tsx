@@ -18,7 +18,8 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Card from '../components/Card';
 import RuleWithDiamond from '../components/RuleWithDiamond';
 import Text from '../components/Text';
-import { ensureMemberSession, isMemberCapError, type Member } from '../lib/ensureMemberSession';
+import { getCurrentMember } from '../lib/getCurrentMember';
+import type { Member } from '../lib/ensureMemberSession';
 import type { RootStackParamList } from '../navigation/types';
 import theme from '../theme/tokens';
 
@@ -93,14 +94,13 @@ function ShareMembershipScreen({ navigation }: Props) {
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      const { member: loaded } = await ensureMemberSession();
+      const loaded = await getCurrentMember();
+      if (!loaded) {
+        throw new Error('Expected an active member session, but none was found.');
+      }
       setMember(loaded);
-    } catch (error) {
-      setErrorMessage(
-        isMemberCapError(error)
-          ? error.message
-          : 'Something went wrong loading your membership. Please try again.'
-      );
+    } catch {
+      setErrorMessage('Something went wrong loading your membership. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -111,17 +111,16 @@ function ShareMembershipScreen({ navigation }: Props) {
 
     (async () => {
       try {
-        const { member: loaded } = await ensureMemberSession();
+        const loaded = await getCurrentMember();
+        if (!loaded) {
+          throw new Error('Expected an active member session, but none was found.');
+        }
         if (!cancelled) {
           setMember(loaded);
         }
-      } catch (error) {
+      } catch {
         if (!cancelled) {
-          setErrorMessage(
-            isMemberCapError(error)
-              ? error.message
-              : 'Something went wrong loading your membership. Please try again.'
-          );
+          setErrorMessage('Something went wrong loading your membership. Please try again.');
         }
       } finally {
         if (!cancelled) {
