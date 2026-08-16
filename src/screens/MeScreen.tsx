@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -12,7 +12,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import BottomTabBar, { type TabKey } from '../components/BottomTabBar';
 import Card from '../components/Card';
 import Text from '../components/Text';
-import { ensureMemberSession, isMemberCapError, type Member } from '../lib/ensureMemberSession';
+import { useMember } from '../context/MemberContext';
 import type { RootStackParamList } from '../navigation/types';
 import theme from '../theme/tokens';
 
@@ -145,65 +145,7 @@ function PhotoPlaceholder() {
 
 function MeScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
-  const [member, setMember] = useState<Member | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  const runLoad = useCallback(async () => {
-    setIsLoading(true);
-    setErrorMessage(null);
-    try {
-      const { member: loaded } = await ensureMemberSession();
-      setMember(loaded);
-    } catch (error) {
-      setErrorMessage(
-        isMemberCapError(error)
-          ? error.message
-          : 'Something went wrong loading your profile. Please try again.'
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    (async () => {
-      try {
-        const { member: loaded } = await ensureMemberSession();
-        if (!cancelled) {
-          setMember(loaded);
-        }
-      } catch (error) {
-        if (!cancelled) {
-          setErrorMessage(
-            isMemberCapError(error)
-              ? error.message
-              : 'Something went wrong loading your profile. Please try again.'
-          );
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false);
-        }
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const refreshSilently = useCallback(async () => {
-    try {
-      const { member: loaded } = await ensureMemberSession();
-      setMember(loaded);
-      setErrorMessage(null);
-    } catch {
-      // Keep the currently shown profile when a background refresh fails.
-    }
-  }, []);
+  const { member, isLoading, errorMessage, reload, refreshSilently } = useMember();
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', refreshSilently);
@@ -219,8 +161,8 @@ function MeScreen({ navigation }: Props) {
   }, [navigation]);
 
   const handleInstagramPress = useCallback(() => {
-    // TODO: add / edit Instagram — awaiting design, no destination yet.
-  }, []);
+    navigation.navigate('EditProfile');
+  }, [navigation]);
 
   const handleSettingsPress = useCallback(() => {
     navigation.navigate('Settings');
@@ -266,7 +208,7 @@ function MeScreen({ navigation }: Props) {
           },
         ]}>
         <Text style={styles.errorText}>{errorMessage}</Text>
-        <Pressable accessibilityRole="button" onPress={runLoad} style={styles.retryButton}>
+        <Pressable accessibilityRole="button" onPress={reload} style={styles.retryButton}>
           <Text style={styles.retryText}>Try Again</Text>
         </Pressable>
       </View>

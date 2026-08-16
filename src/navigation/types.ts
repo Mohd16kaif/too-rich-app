@@ -7,6 +7,7 @@ export type RootStackParamList = {
   OnboardingConfirmation: undefined;
   ClubHome: undefined;
   Members: undefined;
+  MemberProfile: { memberId: number };
   Me: undefined;
   EditProfile: undefined;
   ShareMembership: undefined;

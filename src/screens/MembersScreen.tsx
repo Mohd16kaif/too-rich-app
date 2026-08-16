@@ -13,7 +13,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import BottomTabBar, { type TabKey } from '../components/BottomTabBar';
 import Text from '../components/Text';
-import { ensureMemberSession, isMemberCapError } from '../lib/ensureMemberSession';
+import { useMember } from '../context/MemberContext';
+import { isMemberCapError } from '../lib/ensureMemberSession';
 import { MEMBER_CAP, fetchClaimedMemberCount, formatCount } from '../lib/memberCount';
 import type { RootStackParamList } from '../navigation/types';
 import { supabase } from '../supabase';
@@ -69,8 +70,9 @@ function PhotoPlaceholder() {
 
 function MembersScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
+  const { member } = useMember();
+  const memberId = member ? Number(member.id) : null;
   const [claimedCount, setClaimedCount] = useState<number | null>(null);
-  const [memberId, setMemberId] = useState<number | null>(null);
   const [activeFilter, setActiveFilter] = useState<FilterKey>('All');
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -97,13 +99,9 @@ function MembersScreen({ navigation }: Props) {
 
     (async () => {
       try {
-        const [{ member }, claimed] = await Promise.all([
-          ensureMemberSession(),
-          fetchClaimedMemberCount(),
-        ]);
+        const claimed = await fetchClaimedMemberCount();
 
         if (!cancelled) {
-          setMemberId(Number(member.id));
           setClaimedCount(claimed);
         }
       } catch (error) {
@@ -284,9 +282,12 @@ function MembersScreen({ navigation }: Props) {
     loadPage('append');
   }, [loadPage]);
 
-  const handleMemberPress = useCallback(() => {
-    // TODO: Individual Member Page does not exist yet — no route registered.
-  }, []);
+  const handleMemberPress = useCallback(
+    (memberId: number) => {
+      navigation.navigate('MemberProfile', { memberId });
+    },
+    [navigation]
+  );
 
   const handleToggleFavorite = useCallback(
     (favoritedMemberId: number) => {
@@ -357,7 +358,7 @@ function MembersScreen({ navigation }: Props) {
       return (
         <Pressable
           accessibilityRole="button"
-          onPress={handleMemberPress}
+          onPress={() => handleMemberPress(item.id)}
           style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}>
           <View style={styles.cardTop}>
             <View style={styles.photo}>

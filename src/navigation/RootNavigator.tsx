@@ -3,6 +3,7 @@ import AboutScreen from '../screens/AboutScreen';
 import ClubHomeScreen from '../screens/ClubHomeScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
 import MeScreen from '../screens/MeScreen';
+import MemberProfileScreen from '../screens/MemberProfileScreen';
 import MembersScreen from '../screens/MembersScreen';
 import PrivacyScreen from '../screens/PrivacyScreen';
 import SettingsScreen from '../screens/SettingsScreen';
@@ -59,6 +60,11 @@ function RootNavigator() {
       <Stack.Screen
         name="Members"
         component={MembersScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="MemberProfile"
+        component={MemberProfileScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen
