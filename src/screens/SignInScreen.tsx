@@ -1,17 +1,19 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AppleButton } from '@invertase/react-native-apple-authentication';
+import { appleAuth, AppleButton } from '@invertase/react-native-apple-authentication';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Card from '../components/Card';
 import theme from '../theme/tokens';
 import type { RootStackParamList } from '../navigation/types';
+import { isMemberCapError } from '../lib/ensureMemberSession';
 import {
   MEMBER_CAP,
   PLACEHOLDER,
   fetchClaimedMemberCount,
   formatCount,
 } from '../lib/memberCount';
+import { signInWithApple } from '../lib/signInWithApple';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SignIn'>;
 
@@ -28,6 +30,7 @@ function SignInScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const [claimedCount, setClaimedCount] = useState<number | null>(null);
   const [isLoadingCount, setIsLoadingCount] = useState(true);
+  const [isSigningIn, setIsSigningIn] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -61,9 +64,41 @@ function SignInScreen({ navigation }: Props) {
     ? PLACEHOLDER
     : formatCount(remainingCount);
 
-  const handleAppleSignIn = useCallback(() => {
-    navigation.navigate('Onboarding');
-  }, [navigation]);
+  const handleAppleSignIn = useCallback(async () => {
+    if (isSigningIn) {
+      return;
+    }
+    setIsSigningIn(true);
+    try {
+      const appleAuthResponse = await appleAuth.performRequest({
+        requestedOperation: appleAuth.Operation.LOGIN,
+        requestedScopes: [appleAuth.Scope.EMAIL, appleAuth.Scope.FULL_NAME],
+      });
+
+      const { identityToken } = appleAuthResponse;
+      if (!identityToken) {
+        throw new Error('Apple did not return an identity token.');
+      }
+
+      const { wasCreated } = await signInWithApple(identityToken);
+
+      if (wasCreated) {
+        navigation.navigate('Onboarding');
+      } else {
+        navigation.navigate('ClubHome');
+      }
+    } catch (error) {
+      if (isMemberCapError(error)) {
+        Alert.alert('Sorry', error.message);
+      } else if ((error as { code?: string }).code === appleAuth.Error.CANCELED) {
+        // User cancelled the Apple sign-in sheet, do nothing.
+      } else {
+        Alert.alert('Sign in failed', (error as Error).message);
+      }
+    } finally {
+      setIsSigningIn(false);
+    }
+  }, [isSigningIn, navigation]);
 
   return (
     <View style={styles.container}>

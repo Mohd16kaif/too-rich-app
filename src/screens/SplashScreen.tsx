@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Text from '../components/Text';
 import type { RootStackParamList } from '../navigation/types';
+import { supabase } from '../supabase';
 import theme from '../theme/tokens';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Splash'>;
@@ -12,11 +13,28 @@ function SplashScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      navigation.replace('SignIn');
+    let cancelled = false;
+
+    const timer = setTimeout(async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        if (cancelled) return;
+        if (data.session) {
+          navigation.replace('ClubHome');
+        } else {
+          navigation.replace('SignIn');
+        }
+      } catch {
+        if (!cancelled) {
+          navigation.replace('SignIn');
+        }
+      }
     }, 1500);
 
-    return () => clearTimeout(timer);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
   }, [navigation]);
 
   return (
