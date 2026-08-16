@@ -7,7 +7,7 @@ workflows:
       app_store_connect: "Too Rich CI"
     environment:
       groups:
-        - supabase_credentials
+        - toorich
       vars:
         BUNDLE_ID: "com.kaif.toorich"
         XCODE_WORKSPACE: "ios/TooRichApp.xcworkspace"
