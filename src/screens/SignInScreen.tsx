@@ -14,8 +14,18 @@ import {
   formatCount,
 } from '../lib/memberCount';
 import { signInWithApple } from '../lib/signInWithApple';
+import { sha256 } from 'js-sha256';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SignIn'>;
+
+function generateNonce(length = 32): string {
+  const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
 
 function LockIcon() {
   return (
@@ -70,9 +80,13 @@ function SignInScreen({ navigation }: Props) {
     }
     setIsSigningIn(true);
     try {
+      const rawNonce = generateNonce();
+      const hashedNonce = sha256(rawNonce);
+
       const appleAuthResponse = await appleAuth.performRequest({
         requestedOperation: appleAuth.Operation.LOGIN,
         requestedScopes: [appleAuth.Scope.EMAIL, appleAuth.Scope.FULL_NAME],
+        nonce: hashedNonce,
       });
 
       const { identityToken } = appleAuthResponse;
@@ -80,7 +94,7 @@ function SignInScreen({ navigation }: Props) {
         throw new Error('Apple did not return an identity token.');
       }
 
-      const { wasCreated } = await signInWithApple(identityToken);
+      const { wasCreated } = await signInWithApple(identityToken, rawNonce);
 
       if (wasCreated) {
         navigation.navigate('Onboarding');

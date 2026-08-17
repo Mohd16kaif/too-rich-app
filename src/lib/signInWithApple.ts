@@ -9,10 +9,14 @@ import { MemberCapError, type Member, type MemberSessionResult } from './ensureM
  * Mirrors ensureMemberSession's member-row lookup/create logic, but starts
  * from a real Apple-authenticated Supabase session instead of an anonymous one.
  */
-export async function signInWithApple(identityToken: string): Promise<MemberSessionResult> {
+export async function signInWithApple(
+  identityToken: string,
+  rawNonce: string
+): Promise<MemberSessionResult> {
   const { data: authData, error: authError } = await supabase.auth.signInWithIdToken({
     provider: 'apple',
     token: identityToken,
+    nonce: rawNonce,
   });
 
   if (authError) {
