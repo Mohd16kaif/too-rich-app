@@ -70,9 +70,13 @@ function SignInScreen({ navigation }: Props) {
     }
     setIsSigningIn(true);
     try {
+      // nonceEnabled: false — Supabase's Apple provider has an unfixed server-side bug
+      // (hex vs base64url encoding mismatch) that makes nonce verification always fail,
+      // so we disable the library's automatic nonce generation entirely.
       const appleAuthResponse = await appleAuth.performRequest({
         requestedOperation: appleAuth.Operation.LOGIN,
         requestedScopes: [appleAuth.Scope.EMAIL, appleAuth.Scope.FULL_NAME],
+        nonceEnabled: false,
       });
 
       const { identityToken } = appleAuthResponse;
