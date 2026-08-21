@@ -167,12 +167,10 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: theme.spacing.lg,
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
   },
   topGroup: {
     width: '100%',
-    minHeight: 320,
-    justifyContent: 'flex-end',
   },
   wordmark: {
     fontFamily: theme.fonts.fontSerifBold,
@@ -231,6 +229,7 @@ const styles = StyleSheet.create({
   ctaBlock: {
     width: '100%',
     alignItems: 'center',
+    marginTop: theme.spacing.xl2,
   },
   appleButton: {
     width: '100%',
@@ -272,6 +271,7 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   footer: {
+    marginTop: 'auto',
     fontFamily: theme.fonts.fontMedium,
     fontSize: theme.fontSizes.xs,
     color: theme.colors.textSecondary,

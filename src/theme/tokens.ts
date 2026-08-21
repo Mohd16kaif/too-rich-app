@@ -7,6 +7,10 @@ const colors = {
   black: '#0A0A0A',
   white: '#FFFFFF',
   destructive: '#DC2626',
+  cardBackground: '#111113',
+  cardBorder: '#2A2A2E',
+  cardAccent: '#D9CDB8',
+  cardTextSecondary: '#9C9CA3',
 } as const;
 
 const fonts = {

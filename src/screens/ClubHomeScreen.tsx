@@ -374,9 +374,9 @@ const styles = StyleSheet.create({
   headline: {
     marginTop: theme.spacing.xl,
     fontFamily: theme.fonts.fontSerifBold,
-    fontSize: theme.fontSizes.xl4,
+    fontSize: theme.fontSizes.xl3,
     color: theme.colors.textPrimary,
-    lineHeight: theme.fontSizes.xl4 * 1.15,
+    lineHeight: theme.fontSizes.xl3 * 1.15,
   },
   subtitle: {
     marginTop: theme.spacing.sm,
