@@ -1,0 +1,319 @@
+================================================================================
+TOO RICH — APP STORE SUBMISSION READINESS AUDIT
+================================================================================
+Date: August 22, 2026
+Scope: Full read-only audit of D:\TooRichApp. No code was modified.
+Verification: `npx tsc --noEmit` passes with zero errors.
+
+Method: Every file under src/ read end-to-end; native configs (Info.plist,
+entitlements, AndroidManifest.xml, PrivacyInfo.xcprivacy), app.json,
+package.json, codemagic.yaml, .gitignore, .env.example, and design-refs
+legal docs reviewed. Web research on 2025–2026 App Store rejection patterns
+for AI-assisted ("vibe-coded") apps performed first; the checklist below maps
+to those findings (Guidelines 2.1 crashes/placeholders, 2.3 metadata,
+2.5.2 dynamic code execution, 3.1.1 payments, 4.2/4.3 functionality/spam,
+5.1.1 privacy policy + account deletion, 5.1.2 data disclosure).
+
+--------------------------------------------------------------------------------
+1. MUST-FIX BEFORE SUBMISSION (BLOCKERS)
+--------------------------------------------------------------------------------
+
+[MUST-1] iOS CRASH on "Save as Image" — missing photo-library-add purpose string
+  File: ios/TooRichApp/Info.plist (between lines 40-41)
+  File: src/screens/ShareMembershipScreen.tsx:180 (`CameraRoll.save(uri, ...)`)
+  Problem: The Share screen writes to the user's photo library. On iOS this
+  triggers the ADD-only photo permission, which requires
+  `NSPhotoLibraryAddUsageDescription` in Info.plist. That key is ABSENT
+  (only `NSPhotoLibraryUsageDescription` exists). Accessing the add-only API
+  without the string terminates the app at runtime.
+  Consequence: Guaranteed crash on a core feature during review -> Guideline
+  2.1 rejection at best, crash at worst.
+  Fix: Add NSPhotoLibraryAddUsageDescription to Info.plist with a clear
+  reason string. Requires a native rebuild (not JS-only).
+
+[MUST-2] Dead button in new-member flow — "Share My Number" does nothing
+  File: src/screens/onboarding/OnboardingConfirmationScreen.tsx:94-96
+        (handler is an empty stub: "// TODO: open the Share Sheet ...")
+  File: src/screens/onboarding/OnboardingConfirmationScreen.tsx:158-163
+        (the button IS rendered to every brand-new member)
+  Problem: Every first-time member lands on the confirmation screen and sees
+  a "Share My Number" button that silently does nothing when tapped.
+  Classic Guideline 2.1 "broken flow / placeholder" rejection trigger and
+  exactly the vibe-coded-app mistake reviewers look for.
+  Fix: Either wire it to the existing Share.share pattern already used in
+  ShareMembershipScreen.tsx:141-152, navigate to 'ShareMembership', or remove
+  the button until it works.
+
+[MUST-3] Legal documents ship with self-incriminating draft disclaimers
+  File: src/screens/TermsScreen.tsx:162-164 (CONTENT.footer, rendered at line 244)
+  File: src/screens/PrivacyScreen.tsx:143-144 (CONTENT.footer, rendered in-app)
+  Text shipped to users: "This document is a starting draft ... we recommend
+  having this reviewed by a legal professional before publishing ..."
+  Problem: An end-user-facing ToS/Privacy Policy that says it's an unreviewed
+  draft signals an unfinished app to the reviewer and undermines the legal
+  notices themselves (Guideline 2.1 completeness / 5.1.1).
+  Fix: Remove both footer strings from the in-app documents before submission.
+  (The same disclaimer also sits at the bottom of design-refs/*.md — fine to
+  keep there since that's not user-facing.)
+
+[MUST-4] Payment story mismatch between legal text and actual app behavior
+  Files: src/screens/TermsScreen.tsx:49 ("one-time payment of $399 USD"),
+         :63 ("processed through Apple's App Store payment system")
+         src/screens/PrivacyScreen.tsx:49 ("Purchase Information" section)
+  Problem: There is NO purchase code anywhere in the app — no StoreKit, no
+  react-native-iap, no paywall, no receipt validation. If memberships are in
+  fact granted outside the app (manually via Supabase, or a web checkout),
+  then (a) the Terms describe a payment flow that doesn't exist as described,
+  and (b) selling digital membership unlocked in-app while bypassing IAP is a
+  Guideline 3.1.1 violation; if sold outside the app entirely, the metadata /
+  privacy-policy accuracy problem remains (Guideline 2.3).
+  NOT CERTAIN FROM CODE ALONE: how membership is actually sold is outside this
+  codebase — flagging for founder decision. Whatever the real flow is, Terms +
+  Privacy + App Store Connect metadata must describe exactly that.
+  Fix options: implement real IAP, or correct Terms/Privacy to describe the
+  real grant mechanism, ensuring it complies with 3.1.1.
+
+[MUST-5] Delete anonymous-auth code path before submission
+  File: src/lib/ensureMemberSession.ts:34, :39-57
+  Good news first: `ensureMemberSession()` is NEVER CALLED anymore. All live
+  imports are type-only (Member type) except signInWithApple.ts which imports
+  MemberCapError. The only real auth path is Sign in with Apple via
+  supabase.auth.signInWithIdToken (src/lib/signInWithApple.ts:13), and the
+  SignInScreen wires it up correctly (src/screens/SignInScreen.tsx:76-93).
+  Problem: The dead function still contains `supabase.auth.signInAnonymously()`
+  marked TEMPORARY. Shipping dead auth code that can mint throwaway identities
+  is risk (future refactor could re-enable it) and reviewers/tools scanning for
+  placeholder auth may flag it. Server-side: if "Anonymous sign-ins" are still
+  enabled in the Supabase dashboard, anyone with your anon key can create
+  accounts without Apple.
+  Fix: Delete the function body / move Member types to their own module, and
+  disable the Anonymous provider server-side in Supabase Auth settings.
+
+--------------------------------------------------------------------------------
+2. SHOULD-FIX (REAL BUGS / RISKS, NOT BLOCKERS)
+--------------------------------------------------------------------------------
+
+[SHOULD-1] Favorites feature fetches the ENTIRE favorites table
+  File: src/screens/MembersScreen.tsx:133
+    supabase.from('favorites').select('member_id, favorited_member_id')  // no filter
+  Problem: Loads every favorite row from every member to compute per-member
+  favorite counts client-side. Bounded today by the 1,000 cap, but grows
+  toward ~O(n^2) rows as the club fills (worst case hundreds of thousands of
+  rows over one network call on every Members mount). Will degrade load time
+  and battery on real devices (Guideline 2.4.2 performance territory).
+  Also mildly leaky: members can observe other members' full favorite graphs
+  via network inspection.
+  Fix: Query own favorites with .eq('member_id', myId) for the heart state,
+  and get counts via a count RPC/view or a denormalized counter column.
+
+[SHOULD-2] Fraunces-Italic font referenced but never bundled
+  File: src/theme/tokens.ts:22 (fontSerifItalic: 'Fraunces-Italic')
+  Missing from: src/assets/fonts/ (only Regular/Medium/SemiBold/Bold exist)
+                ios/TooRichApp/Info.plist UIAppFonts (lines 61-71)
+  Used at: MeScreen.tsx:441, EditProfileScreen.tsx:585,
+           MemberProfileScreen.tsx:321, ShareMembershipScreen.tsx:434,
+           TermsScreen.tsx:318 (footerNote style)
+  Effect: All italic status messages render in the default system font
+  instead of Fraunces Italic — visible on the membership card that users can
+  share as an image. Silent fallback, no crash.
+  Fix: Add Fraunces-Italic.ttf to assets + Info.plist (+ link-assets manifest),
+  or stop referencing fontSerifItalic.
+
+[SHOULD-3] Stale-session edge case traps legacy users on a permanent error screen
+  File: src/screens/SplashScreen.tsx:20-26
+  Problem: Any existing Supabase session routes straight to ClubHome. But
+  ClubHome hard-fails when the session has no matching members row
+  (ClubHomeScreen.tsx:100-102 -> error screen with only "Try Again", which
+  retries the same failing query forever). This hits any install from the
+  anonymous-auth era whose session survives but whose row lookup fails, and
+  any future case where sign-in succeeded but create_member failed mid-flight.
+  Fix: In Splash (or ClubHome's !member branch), detect member==null with a
+  valid session and navigation.reset to SignIn instead of retry-looping.
+
+[SHOULD-4] Privacy manifest declares zero collected data — contradicts reality
+  File: ios/TooRichApp/PrivacyInfo.xcprivacy:32-33 (NSPrivacyCollectedDataTypes = empty)
+  Reality: App collects name/email via Sign in with Apple, photos, optional
+  Instagram handle and status message, stores them in Supabase, and displays
+  them to other members.
+  Risk: Apple cross-checks the privacy manifest, the in-app privacy policy,
+  and App Store Connect "App Privacy" labels against observed behavior;
+  mismatches are a documented 2025-2026 rejection driver (Guideline 5.1.1/2.3).
+  Fix: Declare Photos/User Content/Name/Email in NSPrivacyCollectedDataTypes
+  and answer the App Privacy questionnaire identically.
+
+[SHOULD-5] Unused location permission string invites reviewer questions
+  File: ios/TooRichApp/Info.plist:38-39 (NSLocationWhenInUseUsageDescription:
+        "Too Rich uses your location to enhance your membership experience.")
+  Problem: No code in src/ uses geolocation, and none of the active
+  dependencies require it (image-picker is library-only here). A purpose
+  string for a permission the app never requests is inaccurate metadata; if a
+  dependency ever surfaces a location prompt, the vague justification would
+  itself draw rejection.
+  Fix: Remove the key unless location is genuinely planned.
+
+[SHOULD-6] ClubHome duplicates its entire loading routine
+  File: src/screens/ClubHomeScreen.tsx:95-132 (runLoad) vs :134-183 (useEffect)
+  Same copy-paste block exists in EditProfileScreen (:115-134 vs :136-167),
+  SettingsScreen (:84-98 vs :100-126), ShareMembershipScreen (:93-107 vs
+  :109-135), OnboardingPhotoScreen (:26-39 vs :41-64),
+  OnboardingInstagramScreen (:38-51 vs :53-76),
+  OnboardingConfirmationScreen (:21-45 vs :47-83),
+  MemberProfileScreen (:59-74 vs :76-103).
+  Not a bug today (both paths behave identically), but eight copies of the
+  same logic will drift; e.g. a fix applied to runLoad but not the effect.
+  Fix: Make useEffect call runLoad (guarding setState-after-unmount is
+  already handled by React 18+ being a no-op warning-free).
+
+--------------------------------------------------------------------------------
+3. NICE-TO-HAVE (POLISH)
+--------------------------------------------------------------------------------
+
+[NICE-1] AboutScreen version hardcoded
+  src/screens/AboutScreen.tsx:11 (APP_VERSION = '0.0.1') — will drift from the
+  real CFBundleShortVersionString set by codemagic agvtool. Read it natively or
+  from a single generated constant.
+
+[NICE-2] react-native-config installed but unused
+  package.json:22 lists react-native-config; nothing imports it. Config flows
+  through build-time-generated src/generatedConfig.ts (written empty locally,
+  sed-filled in codemagic.yaml:28-33). Works, but remove the dep or actually
+  use it — two config mechanisms is confusion bait.
+
+[NICE-3] console.* calls left in production code
+  8 occurrences: MembersScreen.tsx:138, OnboardingInstagramScreen.tsx:89,
+  OnboardingMessageScreen.tsx:34, SettingsScreen.tsx:194,197,200,
+  memberCount.ts:11,16. All are error-path logging, not debug leftovers; low
+  priority. Optionally strip in release via babel plugin.
+
+[NICE-4] Display name inconsistency
+  Info.plist CFBundleDisplayName = "Too Rich" vs app.json displayName =
+  "TooRichApp". Pick one brand spelling ("Too Rich") everywhere including
+  App Store Connect.
+
+[NICE-5] Two different contact emails in shipped text vs CI config
+  Legal screens say ark07q@gmail.com (TermsScreen.tsx:157,
+  PrivacyScreen.tsx:138); codemagic.yaml:62 notifies kaif39882@gmail.com.
+  Confirm ark07q@gmail.com is actively monitored — it's the address Apple
+  support/users will use.
+
+[NICE-6] RuleWithDiamond glyph depends on font fallback
+  src/components/RuleWithDiamond.tsx renders U+25C6 (BLACK DIAMOND, verified
+  in raw bytes) at 6px using GeneralSans. If GeneralSans lacks U+25C6 the OS
+  falls back — verify it looks right on the shared card image on a device.
+
+--------------------------------------------------------------------------------
+4. THINGS CHECKED THAT ARE FINE (NO ACTION)
+--------------------------------------------------------------------------------
+
+- Secrets hygiene: .env and src/generatedConfig.ts are gitignored
+  (.gitignore:78-79); neither exists in git history (`git log --all -- .env`
+  empty); generatedConfig.ts contains only empty-string placeholders locally;
+  no hardcoded keys/URLs anywhere in src/ (grep clean). NOTE: SUPABASE_URL/
+  ANON_KEY are injected into the JS bundle at CI build time rather than via
+  react-native-config. For Supabase anon/publishable keys this is acceptable
+  BY DESIGN only if RLS is correctly configured — see MANUAL-2.
+- No eval/new Function/remote-script/dynamic-code execution anywhere ->
+  Guideline 2.5.2 clean.
+- Account deletion EXISTS and is well done: Settings -> "Delete Account"
+  with typed DELETE confirmation, storage photo cleanup, delete_own_account
+  RPC, sign-out + stack reset (SettingsScreen.tsx:179-218, 307-312, modal
+  315-371). Satisfies Guideline 5.1.1(v) on the client side.
+- Privacy Policy and Terms reachable from BOTH MeScreen (list card) and
+  SettingsScreen, plus AboutScreen. Content accurately describes actual
+  collection (Apple name/email, photo, status, IG handle, Supabase
+  processing) — matches design-refs/too-rich-privacy-policy.md modulo the
+  filled-in placeholders.
+- Lists virtualized: Members grid uses FlatList with pagination
+  (PAGE_SIZE=30, range-based hasMore detection done correctly),
+  debounced search, optimistic favorites with rollback on failure.
+  ClubHome caps "Newest Members" at 10. No unbounded rendering found.
+- Images all render inside fixed-size containers (aspectRatio/fixed dims);
+  picker quality capped at 0.7. No obvious memory bombs.
+- Async/error handling: every screen has loading + error + retry states;
+  fetchClaimedMemberCount never throws (returns null); all navigation targets
+  exist in RootStackParamList and RootNavigator; params typed (memberId).
+- AndroidManifest minimal and correct: INTERNET only + WRITE_EXTERNAL_STORAGE
+  maxSdkVersion=28 matching the code's API<29 guard
+  (ShareMembershipScreen.tsx:164-175); allowBackup=false.
+- Sign in with Apple entitlement present (TooRichApp.entitlements);
+  nonce handling deliberately disabled with documented rationale
+  (SignInScreen.tsx:73-75) — verify Supabase-side tolerance, see MANUAL-3.
+- ATS safe (arbitrary loads false); ITSAppUsesNonExemptEncryption=false set.
+- TypeScript compiles clean (npx tsc --noEmit, zero errors).
+
+--------------------------------------------------------------------------------
+5. MANUAL STEPS (OUTSIDE THE CODEBASE — REQUIRED FOR SUBMISSION)
+--------------------------------------------------------------------------------
+
+[MANUAL-1] App Store Connect metadata
+  - Privacy Policy URL field: must point to a HOSTED policy (website). The
+    in-app screens do not satisfy the App Store Connect field requirement.
+    Host the same content from design-refs/too-rich-privacy-policy.md.
+  - Screenshots must match the shipped UI (Guideline 2.3) — regenerate after
+    the MUST-FIX UI changes.
+  - Age rating questionnaire: answers must match 13+ eligibility claim in
+    Terms section 1; UGC present means answering the moderation questions.
+  - Demo/test account credentials in review notes: REQUIRED because sign-in
+    is Apple-only. Provide either a working Apple ID sandbox flow explanation
+    or a seeded demo login; reviewers cannot test what they cannot enter
+    (top-5 rejection cause, Guideline 2.1).
+  - App Review notes should explain the model: fixed 1,000-member cap,
+    profile/UGC displayed to other members, moderation approach (see next).
+
+[MANUAL-2] Backend verification (Supabase dashboard — not auditable from repo)
+  - Confirm RLS policies on members/favorites/storage buckets actually
+    restrict UPDATE/DELETE to row owners and reads to authenticated users.
+    The whole "anon key in bundle is fine" assumption rests on this.
+  - Confirm delete_own_account() RPC truly deletes the auth user AND member
+    row AND favorites (client calls it blind; if it errors, users see
+    "Delete Account Failed").
+  - Confirm get_member_claim_count() and create_member() RPCs exist in prod.
+  - Disable "Anonymous sign-ins" provider (pairs with MUST-5).
+  - Confirm Supabase project URL used in CI is the PRODUCTION project.
+
+[MANUAL-3] UGC moderation plan (Guideline 1.2 — social/UGC apps)
+  The Member Wall shows user photos/names/status messages to all members.
+  Apple expects: a reporting/blocking mechanism and stated moderation.
+  Currently there is NO report or block affordance anywhere in the app, and
+  Terms section 5 promises content removal "at our discretion" with no
+  in-app way to trigger it. Minimum viable: a "Report" action (even just a
+  mailto: prefilled with member number) + a note in App Review describing
+  your manual moderation. Decide before submission — this is a known trap
+  for small social apps.
+
+[MANUAL-4] Resolve the payment question (drives MUST-4)
+  Decide and align: how is the $399 actually charged? If outside the app,
+  ensure no in-app unlock expectation and fix Terms/Privacy wording; if
+  inside, implement StoreKit IAP. Do not submit with the current
+  contradiction.
+
+[MANUAL-5] Xcode/toolchain currency
+  2026 submissions are built against current SDK requirements (Xcode 26 SDK
+  enforced since April 28, 2026). codemagic.yaml pins xcode: latest — do a
+  TestFlight build and run it on a real device + iOS 26 simulator, auditing
+  every screen visually before submitting.
+
+[MANUAL-6] Legal review of Terms (supports MUST-3/MUST-4)
+  The disclaimer itself recommends counsel for refund/liability/governing-law
+  clauses (India governing law, international sales, non-refundable $399).
+  Cheap insurance given real money is involved.
+
+[MANUAL-7] Version/name consistency sweep in App Store Connect
+  Bundle ID com.kaif.toorich (codemagic.yaml:12,20) vs app name TooRichApp
+  vs marketing name "Too Rich" — make App Store Connect agree with the build.
+
+--------------------------------------------------------------------------------
+VERDICT
+--------------------------------------------------------------------------------
+NOT ready to submit today, but close. The architecture, error handling, list
+virtualization, account deletion, and secrets hygiene are notably better than
+typical vibe-coded apps — most of this codebase would sail through. The five
+MUST-FIX items are all small, mechanical changes: one plist key, one dead
+button, two footer strings, one dead function, and one business decision about
+payments that must be reflected consistently in-app and in App Store Connect.
+After those plus the UGC reporting decision (MANUAL-3) and backend checks
+(MANUAL-2), this is a credible submission candidate.
+
+Estimated effort: MUST-FIX items ~ half a day of code + one decision meeting.
+Everything else can ship in v1.1.
+================================================================================

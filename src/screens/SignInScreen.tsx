@@ -133,26 +133,28 @@ function SignInScreen({ navigation }: Props) {
           </Card>
         </View>
 
-        <View style={styles.ctaBlock}>
-          <AppleButton
-            buttonStyle={AppleButton.Style.BLACK}
-            buttonType={AppleButton.Type.SIGN_IN}
-            cornerRadius={theme.radius.full}
-            onPress={handleAppleSignIn}
-            style={styles.appleButton}
-          />
+        <View style={styles.bottomGroup}>
+          <View style={styles.ctaBlock}>
+            <AppleButton
+              buttonStyle={AppleButton.Style.BLACK}
+              buttonType={AppleButton.Type.SIGN_IN}
+              cornerRadius={theme.radius.full}
+              onPress={handleAppleSignIn}
+              style={styles.appleButton}
+            />
 
-          <View style={styles.trustRow}>
-            <LockIcon />
-            <Text style={styles.trustText}>
-              Your membership stays private with Apple Sign In.
-            </Text>
+            <View style={styles.trustRow}>
+              <LockIcon />
+              <Text style={styles.trustText}>
+                Your membership stays private with Apple Sign In.
+              </Text>
+            </View>
           </View>
-        </View>
 
-        <Text style={styles.footer}>
-          No subscriptions. No ads. Just membership.
-        </Text>
+          <Text style={styles.footer}>
+            No subscriptions. No ads. Just membership.
+          </Text>
+        </View>
       </View>
     </View>
   );
@@ -226,6 +228,11 @@ const styles = StyleSheet.create({
     fontSize: theme.fontSizes.lg,
     color: theme.colors.black,
   },
+  bottomGroup: {
+    width: '100%',
+    alignItems: 'center',
+    marginTop: 'auto',
+  },
   ctaBlock: {
     width: '100%',
     alignItems: 'center',
@@ -271,7 +278,7 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   footer: {
-    marginTop: 'auto',
+    marginTop: theme.spacing.lg,
     fontFamily: theme.fonts.fontMedium,
     fontSize: theme.fontSizes.xs,
     color: theme.colors.textSecondary,

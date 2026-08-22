@@ -92,8 +92,8 @@ function OnboardingConfirmationScreen({ navigation }: Props) {
   }, [navigation]);
 
   const handleShareMyNumber = useCallback(() => {
-    // TODO: open the Share Sheet / membership card view once it exists — no route registered yet.
-  }, []);
+    navigation.navigate('ShareMembership');
+  }, [navigation]);
 
   if (isLoading) {
     return (

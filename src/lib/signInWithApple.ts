@@ -6,8 +6,9 @@ import { MemberCapError, type Member, type MemberSessionResult } from './ensureM
  * @invertase/react-native-apple-authentication), then ensures a `members`
  * row exists for this user — creating it on first sign-in.
  *
- * Mirrors ensureMemberSession's member-row lookup/create logic, but starts
- * from a real Apple-authenticated Supabase session instead of an anonymous one.
+ * The member row is looked up by the Apple-authenticated user id and minted
+ * via the `create_member` RPC if absent, so RLS policies always resolve
+ * against a real auth.uid().
  */
 export async function signInWithApple(identityToken: string): Promise<MemberSessionResult> {
   const { data: authData, error: authError } = await supabase.auth.signInWithIdToken({

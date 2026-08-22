@@ -12,6 +12,7 @@ import {
 import { launchImageLibrary } from 'react-native-image-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { Crown } from 'lucide-react-native';
 import Button from '../components/Button';
 import Card from '../components/Card';
 import Text from '../components/Text';
@@ -32,17 +33,6 @@ function formatJoinedMonth(joinedAt: string): string {
     return '';
   }
   return date.toLocaleString('en-US', { month: 'long', year: 'numeric' });
-}
-
-function CrownIcon({ color }: { color: string }) {
-  return (
-    <View style={styles.crown}>
-      <View style={[styles.crownBase, { backgroundColor: color }]} />
-      <View style={[styles.crownPeak, styles.crownPeakLeft, { borderBottomColor: color }]} />
-      <View style={[styles.crownPeak, styles.crownPeakCenter, { borderBottomColor: color }]} />
-      <View style={[styles.crownPeak, styles.crownPeakRight, { borderBottomColor: color }]} />
-    </View>
-  );
 }
 
 function CalendarIcon() {
@@ -326,7 +316,7 @@ function EditProfileScreen({ navigation }: Props) {
 
           <View style={styles.metaBlock}>
             <View style={styles.metaRow}>
-              <CrownIcon color={theme.colors.black} />
+              <Crown size={24} strokeWidth={2} color={theme.colors.black} />
               <Text style={styles.metaTextDark}>Permanent Member</Text>
             </View>
             <View style={[styles.metaRow, styles.metaRowSpaced]}>
@@ -616,43 +606,6 @@ const styles = StyleSheet.create({
     fontFamily: theme.fonts.fontRegular,
     fontSize: theme.fontSizes.sm,
     color: theme.colors.textSecondary,
-  },
-  crown: {
-    width: 20,
-    height: 16,
-    position: 'relative',
-  },
-  crownBase: {
-    position: 'absolute',
-    bottom: 0,
-    left: 2,
-    width: 16,
-    height: 3,
-    borderRadius: 1,
-  },
-  crownPeak: {
-    width: 0,
-    height: 0,
-    borderLeftWidth: 3.5,
-    borderRightWidth: 3.5,
-    borderBottomWidth: 8,
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
-  },
-  crownPeakLeft: {
-    position: 'absolute',
-    top: 4,
-    left: 0,
-  },
-  crownPeakCenter: {
-    position: 'absolute',
-    top: 0,
-    left: 6.5,
-  },
-  crownPeakRight: {
-    position: 'absolute',
-    top: 4,
-    left: 13,
   },
   calendarIcon: {
     width: 14,

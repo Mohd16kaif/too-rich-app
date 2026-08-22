@@ -141,7 +141,7 @@ const CONTENT: LegalContent = {
     },
   ],
   footer:
-    'This document is a starting draft based on the App\'s actual functionality. Given that Too Rich processes payments and operates across multiple countries, we recommend having this reviewed by a legal professional before publishing, particularly for compliance with regional laws (e.g. GDPR in the EU, CCPA in California) beyond what\'s covered here.',
+    'This Privacy Policy is effective as of August 14, 2026 and applies to all users of Too Rich. If you have questions about this policy or your data, contact us at ark07q@gmail.com.',
 };
 
 function BackChevronIcon({ color }: { color: string }) {

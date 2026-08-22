@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { Crown } from 'lucide-react-native';
 import Card from '../components/Card';
 import RuleWithDiamond from '../components/RuleWithDiamond';
 import Text from '../components/Text';
@@ -18,17 +19,6 @@ function formatJoinedMonth(joinedAt: string): string {
     return '';
   }
   return date.toLocaleString('en-US', { month: 'long', year: 'numeric' });
-}
-
-function CrownIcon({ color }: { color: string }) {
-  return (
-    <View style={styles.crown}>
-      <View style={[styles.crownBase, { backgroundColor: color }]} />
-      <View style={[styles.crownPeak, styles.crownPeakLeft, { borderBottomColor: color }]} />
-      <View style={[styles.crownPeak, styles.crownPeakCenter, { borderBottomColor: color }]} />
-      <View style={[styles.crownPeak, styles.crownPeakRight, { borderBottomColor: color }]} />
-    </View>
-  );
 }
 
 function ChevronIcon({ color }: { color: string }) {
@@ -157,7 +147,7 @@ function MemberProfileScreen({ navigation, route }: Props) {
         ]}
         showsVerticalScrollIndicator={false}>
         <Card style={styles.memberCard}>
-          <CrownIcon color={theme.colors.black} />
+          <Crown size={24} strokeWidth={2} color={theme.colors.black} />
 
           <Text style={styles.wordmark}>Too Rich</Text>
 
@@ -334,43 +324,6 @@ const styles = StyleSheet.create({
   },
   footlineSpaced: {
     marginTop: theme.spacing.sm,
-  },
-  crown: {
-    width: 24,
-    height: 20,
-    position: 'relative',
-  },
-  crownBase: {
-    position: 'absolute',
-    bottom: 0,
-    left: 2,
-    width: 20,
-    height: 4,
-    borderRadius: 1,
-  },
-  crownPeak: {
-    width: 0,
-    height: 0,
-    borderLeftWidth: 4,
-    borderRightWidth: 4,
-    borderBottomWidth: 10,
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
-  },
-  crownPeakLeft: {
-    position: 'absolute',
-    top: 5,
-    left: 0,
-  },
-  crownPeakCenter: {
-    position: 'absolute',
-    top: 0,
-    left: 8,
-  },
-  crownPeakRight: {
-    position: 'absolute',
-    top: 5,
-    left: 16,
   },
   chevron: {
     width: 16,

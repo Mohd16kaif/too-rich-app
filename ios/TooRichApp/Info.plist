@@ -39,6 +39,8 @@
 	<string>Too Rich uses your location to enhance your membership experience.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Too Rich needs access to your photo library so you can upload a profile photo.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Too Rich saves your membership card image to your photo library when you choose to share it.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIRequiredDeviceCapabilities</key>

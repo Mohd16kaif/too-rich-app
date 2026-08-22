@@ -160,7 +160,7 @@ const CONTENT: LegalContent = {
     },
   ],
   footer:
-    'This document is a starting draft based on the App\'s actual functionality. Given that Too Rich processes real payments internationally and includes user-generated content, we recommend having this reviewed by a legal professional before publishing — particularly the refund, liability, and governing law sections, which can carry real consequences if misdrafted.',
+    'These Terms of Service are effective as of August 14, 2026 and apply to all members of Too Rich. If you have questions about these Terms, contact us at ark07q@gmail.com.',
 };
 
 function BackChevronIcon({ color }: { color: string }) {

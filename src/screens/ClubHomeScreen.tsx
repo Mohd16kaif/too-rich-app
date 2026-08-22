@@ -243,7 +243,7 @@ function ClubHomeScreen({ navigation }: Props) {
         </View>
 
         <Text style={styles.headline}>
-          Welcome back,{'\n'}Member #{memberNumber}
+          Welcome,{'\n'}Member #{memberNumber}
         </Text>
         <Text style={styles.subtitle}>One of only 1,000 permanent members.</Text>
 
