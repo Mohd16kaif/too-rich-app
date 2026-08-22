@@ -3,6 +3,7 @@ import { Alert, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { appleAuth, AppleButton } from '@invertase/react-native-apple-authentication';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { Crown, Lock, ShieldCheck, Star } from 'lucide-react-native';
 import Card from '../components/Card';
 import theme from '../theme/tokens';
 import type { RootStackParamList } from '../navigation/types';
@@ -16,15 +17,6 @@ import {
 import { signInWithApple } from '../lib/signInWithApple';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SignIn'>;
-
-function LockIcon() {
-  return (
-    <View style={styles.lockIcon}>
-      <View style={styles.lockShackle} />
-      <View style={styles.lockBody} />
-    </View>
-  );
-}
 
 function SignInScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
@@ -122,6 +114,9 @@ function SignInScreen({ navigation }: Props) {
           </Text>
 
           <Card style={styles.statCard}>
+            <View style={styles.crownBadge}>
+              <Crown size={28} strokeWidth={1.5} color={theme.colors.black} />
+            </View>
             <Text style={styles.statClaimed}>
               <Text style={styles.statClaimedNumber}>{displayClaimed}</Text>
               {' / 1,000 Members Claimed'}
@@ -133,6 +128,42 @@ function SignInScreen({ navigation }: Props) {
           </Card>
         </View>
 
+        <View style={styles.trustColumns}>
+          <View style={styles.trustColumn}>
+            <View style={styles.trustBadge}>
+              <Lock size={26} strokeWidth={1.5} color={theme.colors.black} />
+            </View>
+            <Text style={styles.trustLabel}>Private</Text>
+            <Text style={styles.trustSublabel}>
+              Your membership stays private.
+            </Text>
+          </View>
+
+          <View style={styles.trustDivider} />
+
+          <View style={styles.trustColumn}>
+            <View style={styles.trustBadge}>
+              <Star size={26} strokeWidth={1.5} color={theme.colors.black} />
+            </View>
+            <Text style={styles.trustLabel}>Exclusive</Text>
+            <Text style={styles.trustSublabel}>Invited members only.</Text>
+          </View>
+
+          <View style={styles.trustDivider} />
+
+          <View style={styles.trustColumn}>
+            <View style={styles.trustBadge}>
+              <ShieldCheck
+                size={26}
+                strokeWidth={1.5}
+                color={theme.colors.black}
+              />
+            </View>
+            <Text style={styles.trustLabel}>No Noise</Text>
+            <Text style={styles.trustSublabel}>No subscriptions. No ads.</Text>
+          </View>
+        </View>
+
         <View style={styles.bottomGroup}>
           <View style={styles.ctaBlock}>
             <AppleButton
@@ -142,13 +173,6 @@ function SignInScreen({ navigation }: Props) {
               onPress={handleAppleSignIn}
               style={styles.appleButton}
             />
-
-            <View style={styles.trustRow}>
-              <LockIcon />
-              <Text style={styles.trustText}>
-                Your membership stays private with Apple Sign In.
-              </Text>
-            </View>
           </View>
 
           <Text style={styles.footer}>
@@ -205,6 +229,17 @@ const styles = StyleSheet.create({
     elevation: 4,
     alignItems: 'center',
   },
+  crownBadge: {
+    width: 68,
+    height: 68,
+    borderRadius: theme.radius.full,
+    backgroundColor: theme.colors.surfaceMuted,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: theme.spacing.lg,
+  },
   statClaimed: {
     fontFamily: theme.fonts.fontRegular,
     fontSize: theme.fontSizes.base,
@@ -228,54 +263,58 @@ const styles = StyleSheet.create({
     fontSize: theme.fontSizes.lg,
     color: theme.colors.black,
   },
+  trustColumns: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    width: '100%',
+    marginTop: theme.spacing.xl,
+  },
+  trustColumn: {
+    flex: 1,
+    alignItems: 'center',
+    paddingHorizontal: theme.spacing.xs,
+  },
+  trustDivider: {
+    width: 1,
+    backgroundColor: theme.colors.border,
+  },
+  trustBadge: {
+    width: 56,
+    height: 56,
+    borderRadius: theme.radius.full,
+    backgroundColor: theme.colors.surfaceMuted,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  trustLabel: {
+    marginTop: theme.spacing.md,
+    fontFamily: theme.fonts.fontSemibold,
+    fontSize: theme.fontSizes.base,
+    color: theme.colors.textPrimary,
+    textAlign: 'center',
+  },
+  trustSublabel: {
+    marginTop: theme.spacing.xs,
+    fontFamily: theme.fonts.fontRegular,
+    fontSize: theme.fontSizes.xs,
+    lineHeight: theme.fontSizes.xs * 1.4,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+  },
   bottomGroup: {
     width: '100%',
     alignItems: 'center',
-    marginTop: 'auto',
   },
   ctaBlock: {
     width: '100%',
     alignItems: 'center',
-    marginTop: theme.spacing.xl2,
+    marginTop: theme.spacing.xl,
   },
   appleButton: {
     width: '100%',
     height: 52,
-  },
-  trustRow: {
-    marginTop: theme.spacing.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  lockIcon: {
-    width: 18,
-    height: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  lockShackle: {
-    width: 10,
-    height: 10,
-    borderWidth: 2,
-    borderColor: theme.colors.textSecondary,
-    borderBottomWidth: 0,
-    borderTopLeftRadius: 5,
-    borderTopRightRadius: 5,
-  },
-  lockBody: {
-    width: 16,
-    height: 12,
-    borderWidth: 2,
-    borderColor: theme.colors.textSecondary,
-    borderRadius: 2,
-    marginTop: -2,
-  },
-  trustText: {
-    marginLeft: theme.spacing.sm,
-    fontFamily: theme.fonts.fontRegular,
-    fontSize: theme.fontSizes.sm,
-    color: theme.colors.textSecondary,
-    flexShrink: 1,
   },
   footer: {
     marginTop: theme.spacing.lg,
